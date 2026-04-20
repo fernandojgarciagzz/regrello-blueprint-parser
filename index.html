@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regrello Blueprint Parser</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root{--bg:#f0f2f5;--surface:#ffffff;--surface2:#f7f8fa;--border:#e1e4e8;--border-hover:#c9cdd3;--text:#1b1f24;--text-dim:#636c76;--text-faint:#9ea7b2;--shadow-rgb:31,35,40;--accent:#0969da;--accent-light:#ddf4ff;--accent-subtle:rgba(9,105,218,0.08);--green:#1a7f37;--green-light:#dafbe1;--orange:#bc4c00;--orange-light:#fff1e5;--glow:0 0 0 3px rgba(9,105,218,0.15);--card-shadow:0 1px 3px rgba(0,0,0,0.04),0 6px 16px rgba(0,0,0,0.06);--card-shadow-hover:0 4px 12px rgba(0,0,0,0.08),0 12px 28px rgba(0,0,0,0.1)}
+:root[data-theme="dark"]{--bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;--border-hover:#484f58;--text:#e6edf3;--text-dim:#7d8590;--text-faint:#545d68;--shadow-rgb:0,0,0;--accent:#4f86f7;--accent-light:rgba(79,134,247,0.15);--accent-subtle:rgba(79,134,247,0.08);--green:#3fb950;--green-light:rgba(63,185,80,0.15);--orange:#e3813a;--orange-light:rgba(227,129,58,0.15);--glow:0 0 0 3px rgba(79,134,247,0.2);--card-shadow:0 1px 3px rgba(0,0,0,0.2),0 6px 16px rgba(0,0,0,0.3);--card-shadow-hover:0 4px 12px rgba(0,0,0,0.3),0 12px 28px rgba(0,0,0,0.4)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.upload-page{text-align:center;max-width:560px;width:100%;padding:40px 24px}
+.logo{margin-bottom:12px}
+.logo img{width:80px;height:80px;object-fit:contain}
+.upload-page h1{font-size:26px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px}
+.upload-page .subtitle{color:var(--text-dim);font-size:15px;margin-bottom:32px;line-height:1.5}
+.upload-page .subtitle code{background:var(--accent-subtle);color:var(--accent);padding:2px 7px;border-radius:5px;font-size:13px;font-weight:600}
+.card{background:var(--surface);border-radius:16px;box-shadow:var(--card-shadow);border:1px solid var(--border);overflow:hidden;transition:box-shadow .3s,border-color .3s}
+.drop-zone{padding:48px 40px;cursor:pointer;transition:all .25s;position:relative}
+.drop-zone::before{content:'';position:absolute;inset:12px;border:2px dashed var(--border);border-radius:10px;transition:all .3s;pointer-events:none}
+.drop-zone:hover::before,.drop-zone.over::before{border-color:var(--accent);background:var(--accent-subtle)}
+.drop-zone:hover,.card:has(.drop-zone:hover){border-color:var(--border-hover)}
+.drop-zone.over{background:var(--accent-subtle)}
+.card:has(.drop-zone.over){box-shadow:var(--card-shadow-hover);border-color:var(--accent)}
+.drop-icon{width:44px;height:44px;border-radius:12px;background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;transition:all .3s}
+.drop-icon svg{width:22px;height:22px;color:var(--text-dim);transition:color .3s}
+.drop-zone:hover .drop-icon,.drop-zone.over .drop-icon{background:var(--accent-light)}
+.drop-zone:hover .drop-icon svg,.drop-zone.over .drop-icon svg{color:var(--accent)}
+.drop-zone h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.drop-zone span{color:var(--text-faint);font-size:13px;font-weight:500}
+.drop-zone input{display:none}
+.status-bar{padding:0;max-height:0;overflow:hidden;transition:all .35s ease;border-top:0 solid var(--border);font-size:14px}
+.status-bar.visible{padding:14px 24px;max-height:60px;border-top-width:1px}
+.status-bar .status-inner{display:flex;align-items:center;justify-content:center;gap:8px}
+.status-bar .status-text{font-weight:500}
+.status-bar.error{background:var(--orange-light);color:var(--orange)}
+.status-bar.success{background:var(--green-light);color:var(--green)}
+.status-bar.loading{background:var(--accent-subtle);color:var(--accent)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.check-icon{width:16px;height:16px;flex-shrink:0}
+.actions{margin-top:20px;display:grid;grid-template-columns:1fr;gap:10px;opacity:0;max-height:0;overflow:hidden;transition:all .4s ease}
+.actions.show{opacity:1;max-height:200px}
+.btn{padding:11px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn svg{width:16px;height:16px;flex-shrink:0}
+.btn:hover{border-color:var(--border-hover);box-shadow:0 2px 6px rgba(var(--shadow-rgb),0.08);transform:translateY(-1px)}
+.btn:active{transform:translateY(0);box-shadow:none}
+.btn.primary{background:linear-gradient(135deg,var(--accent),#2b6cb0);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(9,105,218,0.3)}
+.btn.primary:hover{box-shadow:0 4px 14px rgba(9,105,218,0.4);transform:translateY(-1px)}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.footer{margin-top:32px;font-size:12px;color:var(--text-faint);font-weight:500}
+.footer a{color:var(--text-dim);text-decoration:none;transition:color .15s}
+.footer a:hover{color:var(--accent)}
+.theme-toggle{position:fixed;top:16px;right:16px;width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;color:var(--text-dim)}
+.theme-toggle:hover{border-color:var(--border-hover);color:var(--text);box-shadow:0 2px 8px rgba(var(--shadow-rgb),0.08)}
+@media(max-width:480px){.upload-page{padding:24px 16px}.drop-zone{padding:36px 24px}.btn-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-toggle" title="Toggle theme">&#9790;</button>
+
+<div class="upload-page" id="upload-page">
+  <div class="logo">
+    <img src="robot.png" alt="Agentforce">
+  </div>
+  <h1>Regrello Blueprint Parser</h1>
+  <p class="subtitle">Drop a <code>.rex</code> export to generate an interactive workflow dashboard</p>
+
+  <div class="card">
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <h3>Drop .rex file here</h3>
+      <span>or click to browse</span>
+      <input type="file" id="file-input" accept=".rex">
+    </div>
+    <div class="status-bar" id="status-bar">
+      <div class="status-inner">
+        <span class="status-icon" id="status-icon"></span>
+        <span class="status-text" id="status-text"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions" id="actions">
+    <button class="btn primary" id="btn-view">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      View Dashboard
+    </button>
+    <div class="btn-row">
+      <button class="btn" id="btn-download-html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        HTML Dashboard
+      </button>
+      <button class="btn" id="btn-download-txt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Text Analysis
+      </button>
+    </div>
+  </div>
+
+  <div class="footer">
+    Regrello Blueprint Parser &middot; Salesforce Internal
+  </div>
+</div>
+
+<script>
+// ==============================================================
+// REGRELLO .REX PARSER (JavaScript port)
+// ==============================================================
+
+const AGENT_CLASS_MAP = {
+  'DOCUMENT_READER':'doc','DOCUMENT_EXTRACTION':'doc','DOCUMENT':'doc',
+  'AI_AGENT':'ai','CODER':'ai','FLASH':'flash',
+  'EXCEL':'excel','EXCEL_AUTOMATION':'excel',
+  'TABLES':'tabular','TABULAR':'tabular',
+  'GENERIC':'regrello','REGRELLO':'regrello'
+};
+const AGENT_TYPE_NAMES = {
+  'FLASH':'Flash Agent','TABLES':'Tabular Agent','TABULAR':'Tabular Agent',
+  'DOCUMENT':'Document Agent','EXCEL':'Excel Agent',
+  'GENERIC':'Regrello Agent','REGRELLO':'Regrello Agent',
+  'DOCUMENT_EXTRACTION':'Document Extraction Agent','UNKNOWN':'Unknown Agent'
+};
+
+function parseFieldInstance(fi) {
+  const field = fi.field || {};
+  const pt = field.propertyType || {};
+  const sfv = fi.spectrumFieldVersion || {};
+  return {
+    id: field.id || 0,
+    name: field.name || 'Unknown',
+    property_type: pt.name || 'Unknown',
+    is_multi_valued: field.isMultiValued || false,
+    input_type: fi.inputType || 'UNKNOWN',
+    helper_text: sfv.helperText || '',
+    allowed_values: field.allowedValues || []
+  };
+}
+
+function parseAgent(task) {
+  // Try aiAgentInstance first
+  const agi = task.aiAgentInstance;
+  if (agi) {
+    const cfg = agi.aiAgentConfig || {};
+    if (cfg.id) return { id: cfg.id, name: cfg.name || 'Unknown', type: cfg.type || 'UNKNOWN' };
+  }
+  // Fallback: look in assignees
+  for (const a of (task.assignees || [])) {
+    const u = a.user;
+    if (u && u.userType === 'AI_AGENT_ACCOUNT') {
+      const aat = u.aiAgentType || {};
+      return { id: u.id, name: u.name || 'Unknown', type: aat.v4Type || 'UNKNOWN' };
+    }
+  }
+  return null;
+}
+
+function agentClass(task, agent) {
+  if (!agent) return 'human';
+  return AGENT_CLASS_MAP[agent.type] || 'regrello';
+}
+
+function agentLabel(task, agent) {
+  if (task.createsWorkflowFromWorkflowTemplateId) return 'Linked Workflow';
+  if (agent) return agent.name || AGENT_TYPE_NAMES[agent.type] || agent.type;
+  // Human task
+  for (const a of (task.assignees || [])) {
+    if (a.user && a.user.userType !== 'AI_AGENT_ACCOUNT') return 'Human (' + (a.user.name || 'User') + ')';
+    if (a.team) return 'Human (' + a.team.name + ')';
+  }
+  if (task.fieldInstancesControllingAssignees && task.fieldInstancesControllingAssignees.length) return 'Human (Dynamic)';
+  return 'Human (Workflow owner)';
+}
+
+function parseStageConditions(sc) {
+  if (!sc || !sc.conditions) return [];
+  return sc.conditions.map(c => {
+    const left = c.left || {};
+    const right = c.right;
+    const field = left.field || {};
+    const op = c.operator || c.operatorV2 || 'EQUALS';
+    let val = null;
+    function extractVal(v) {
+      if (!v || typeof v !== 'object') return null;
+      if (v.stringValue != null) return v.stringValue;
+      if (v.textValue != null) return v.textValue;
+      if (v.booleanValue != null) return v.booleanValue;
+      if (v.intValue != null) return v.intValue;
+      if (v.integerValue != null) return v.integerValue;
+      if (v.floatValue != null) return v.floatValue;
+      return null;
+    }
+    if (Array.isArray(right) && right.length) {
+      const ri = right[0];
+      if (ri && ri.values && ri.values.length) val = extractVal(ri.values[0]);
+    } else if (right && typeof right === 'object') {
+      if (right.textValue) val = right.textValue;
+      else if (right.values && right.values.length) val = extractVal(right.values[0]);
+    }
+    return { field_name: field.name || 'Unknown', operator: op, compare_value: val };
+  });
+}
+
+function parseBlueprintData(bpData) {
+  const stages = [];
+  for (const stageData of (bpData.stageTemplates || [])) {
+    const tasks = [];
+    for (const taskData of (stageData.actionItemTemplates || [])) {
+      const agent = parseAgent(taskData);
+      const fieldInstances = taskData.fieldInstances || [];
+      const shared = fieldInstances.filter(fi => fi.inputType === 'INHERITED').map(parseFieldInstance);
+      const requested = fieldInstances.filter(fi => fi.inputType === 'REQUESTED' || fi.inputType === 'OPTIONAL').map(parseFieldInstance);
+
+      // Field instructions for doc reader
+      let fieldInstructions = null;
+      if (agent && (agent.type === 'DOCUMENT_READER' || agent.type === 'DOCUMENT_EXTRACTION')) {
+        fieldInstructions = requested.map(f => ({
+          requested_field: f.name,
+          field_type: f.property_type,
+          additional_instructions: f.helper_text || '',
+          multiple_values: f.is_multi_valued || false,
+          allowed_values: f.allowed_values || []
+        }));
+      }
+
+      tasks.push({
+        id: taskData.id,
+        name: taskData.name || 'Unknown',
+        description: taskData.description || '',
+        task_type: taskData.type || 'DEFAULT',
+        display_order: taskData.displayOrder || 0,
+        agent: agent,
+        agentClass: agentClass(taskData, agent),
+        agentLabel: agentLabel(taskData, agent),
+        shared_fields: shared,
+        requested_fields: requested,
+        linked_workflow_id: taskData.createsWorkflowFromWorkflowTemplateId || null,
+        field_instructions: fieldInstructions,
+        form_structure: taskData.exportFormStructure ? { form_name: taskData.exportFormStructure.name || 'Unknown' } : null
+      });
+    }
+
+    const startAfter = (stageData.startAfterWorkflowStageTemplates || []).map(s => ({
+      stage_id: s.id, stage_name: s.name
+    }));
+    const conditions = parseStageConditions(stageData.startingConditions);
+
+    stages.push({
+      id: stageData.id,
+      name: stageData.name || 'Unknown',
+      execution_order: stageData.executionOrder || 0,
+      start_on_workflow_start: stageData.startOnWorkflowStart || false,
+      start_after_stages: startAfter,
+      starting_conditions: conditions,
+      tasks: tasks
+    });
+  }
+
+  // Workflow-level fields
+  const wfFields = (bpData.fieldInstances || []).map(parseFieldInstance);
+
+  return {
+    id: bpData.id,
+    name: bpData.name || 'Unknown',
+    stages: stages,
+    workflow_fields: wfFields
+  };
+}
+
+function buildDataFlowEdges(bp) {
+  const edges = [];
+  const taskOrder = {};
+  for (const stage of bp.stages) {
+    for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+      taskOrder[stage.tasks[tidx].id] = [stage.execution_order, tidx];
+    }
+  }
+  // field_id -> [{task_id, task_name}]
+  const fieldOutputs = {};
+  for (const stage of bp.stages) {
+    for (const task of stage.tasks) {
+      for (const f of task.requested_fields) {
+        if (!fieldOutputs[f.id]) fieldOutputs[f.id] = [];
+        fieldOutputs[f.id].push({ task_id: task.id, task_name: task.name });
+      }
+    }
+  }
+
+  function resolveSource(fieldId, consumerTaskId) {
+    const producers = fieldOutputs[fieldId] || [];
+    if (!producers.length) return null;
+    if (producers.length === 1) return producers[0];
+    const co = taskOrder[consumerTaskId] || [999, 999];
+    const upstream = producers.filter(p => {
+      const po = taskOrder[p.task_id] || [999, 999];
+      return po[0] < co[0] || (po[0] === co[0] && po[1] < co[1]);
+    });
+    if (upstream.length) return upstream.reduce((best, p) => {
+      const bo = taskOrder[best.task_id] || [0,0];
+      const po = taskOrder[p.task_id] || [0,0];
+      return (po[0] > bo[0] || (po[0] === bo[0] && po[1] > bo[1])) ? p : best;
+    });
+    return producers[0];
+  }
+
+  for (const stage of bp.stages) {
+    for (const task of stage.tasks) {
+      for (const inp of task.shared_fields) {
+        const src = resolveSource(inp.id, task.id);
+        if (src) {
+          edges.push({
+            from_task_id: src.task_id, from_task_name: src.task_name,
+            from_field_name: inp.name, to_task_id: task.id, to_task_name: task.name,
+            to_field_name: inp.name, data_type: inp.property_type
+          });
+        }
+      }
+    }
+  }
+  return edges;
+}
+
+function buildSourceMap(bp, prefix) {
+  const taskLookup = {};
+  for (const stage of bp.stages) {
+    for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+      taskLookup[stage.tasks[tidx].id] = { stage, tidx: tidx + 1 };
+    }
+  }
+  const map = {};
+  const edges = buildDataFlowEdges(bp);
+  for (const edge of edges) {
+    const src = taskLookup[edge.from_task_id];
+    const key = edge.to_task_id + '|' + edge.from_field_name;
+    if (src) map[key] = 'Task ' + prefix + src.stage.execution_order + '.' + src.tidx;
+    else map[key] = 'Task ID ' + edge.from_task_id;
+  }
+  return { map, edges };
+}
+
+// ==============================================================
+// BUILD JS DATA STRUCTURES (same format as Python parser output)
+// ==============================================================
+
+function escJS(s) {
+  if (s == null) return '';
+  return String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'').replace(/\t/g,'\\t');
+}
+function escBacktick(s) {
+  if (s == null) return '';
+  return String(s).replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$\{/g,'\\${');
+}
+
+function cleanPromptHtml(s) {
+  if (!s) return '';
+  // Field mentions
+  s = s.replace(/<span[^>]*data-mention-label="([^"]*)"[^>]*>\s*<\/span>/g, '<span class="field-mention">[$1]</span>');
+  s = s.replace(/<span[^>]*data-mention-label="([^"]*)"[^>]*>[^<]*<\/span>/g, '<span class="field-mention">[$1]</span>');
+  // Line breaks
+  s = s.replace(/\{\{Line\s*Break\}\}/gi, '<br>');
+  // Conditionals
+  s = s.replace(/\{%\s*if\s+(\w+)\s*%\}/g, '<div class="prompt-conditional">If $1:</div>');
+  s = s.replace(/\{%\s*endif\s*%\}/g, '');
+  // Literal \n
+  s = s.replace(/\\n/g, '<br>');
+  // Decode entities
+  const txt = document.createElement('textarea');
+  txt.innerHTML = s;
+  s = txt.value;
+  // Remove empty paragraphs
+  s = s.replace(/<p>\s*<\/p>/g, '');
+  // Clean excessive breaks
+  s = s.replace(/(<br\s*\/?>){3,}/g, '<br><br>');
+  return s.trim();
+}
+
+function buildTriggerText(stage) {
+  if (stage.start_on_workflow_start) return 'Workflow start';
+  if (stage.start_after_stages.length) return 'After ' + stage.start_after_stages.map(s => s.stage_name).join(', ') + ' completes';
+  if (stage.execution_order > 1) return 'After previous stage completes';
+  return 'Workflow start';
+}
+
+function buildConditionText(stage) {
+  if (!stage.starting_conditions.length) return null;
+  return stage.starting_conditions.map(c => {
+    let op = c.operator === 'EQUALS' ? '=' : c.operator === 'NOT_EQUALS' ? '!=' : c.operator;
+    return c.field_name + ' ' + op + ' "' + (c.compare_value || '') + '"';
+  }).join(' AND ');
+}
+
+function generateDataStructures(blueprints) {
+  const parent = blueprints[0];
+  const childBps = blueprints.slice(1);
+  const childMap = {};
+  childBps.forEach(bp => { childMap[bp.id] = bp; });
+
+  const { map: parentSourceMap, edges: parentEdges } = buildSourceMap(parent, '');
+
+  // Build stages array
+  const stagesArr = [];
+  for (const stage of parent.stages) {
+    const trigger = buildTriggerText(stage);
+    const condition = buildConditionText(stage);
+    const sid = stage.execution_order;
+    const tasksArr = [];
+
+    for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+      const task = stage.tasks[tidx];
+      const taskId = stage.execution_order + '.' + (tidx + 1);
+
+      const inputs = task.shared_fields.map(f => {
+        let src = 'Workflow-level';
+        const key = task.id + '|' + f.name;
+        if (parentSourceMap[key]) src = parentSourceMap[key];
+        else if (parent.workflow_fields.some(wf => wf.name === f.name)) src = 'Workflow-level';
+        return { n: f.name, t: f.property_type, src: src, id: f.id };
+      });
+
+      const outputs = task.requested_fields.map(f => ({ n: f.name, t: f.property_type, id: f.id }));
+
+      const isChildLink = !!(task.linked_workflow_id && childMap[task.linked_workflow_id]);
+
+      tasksArr.push({
+        id: taskId, name: task.name,
+        agent: task.agentLabel, agentClass: task.agentClass,
+        _isChildLink: isChildLink,
+        inputs: inputs, outputs: outputs
+      });
+    }
+
+    stagesArr.push({ id: sid, name: stage.name, trigger: trigger, condition: condition, tasks: tasksArr });
+  }
+
+  // Child stages
+  let childStagesArr = [];
+  if (childBps.length) {
+    const childBp = childBps[0];
+    const { map: childSourceMap } = buildSourceMap(childBp, 'C1.');
+    for (const stage of childBp.stages) {
+      const trigger = buildTriggerText(stage);
+      const condition = buildConditionText(stage);
+      const tasksArr = [];
+      for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+        const task = stage.tasks[tidx];
+        const taskId = 'C1.' + stage.execution_order + '.' + (tidx + 1);
+        const inputs = task.shared_fields.map(f => {
+          let src = 'Workflow-level';
+          const key = task.id + '|' + f.name;
+          if (childSourceMap[key]) src = childSourceMap[key];
+          return { n: f.name, t: f.property_type, src: src, id: f.id };
+        });
+        const outputs = task.requested_fields.map(f => ({ n: f.name, t: f.property_type, id: f.id }));
+        tasksArr.push({ id: taskId, name: task.name, agent: task.agentLabel, agentClass: task.agentClass, _isChildLink: false, inputs, outputs });
+      }
+      childStagesArr.push({ id: 'C1.' + stage.execution_order, name: stage.name, trigger, condition, tasks: tasksArr });
+    }
+  }
+
+  // Edges
+  const taskLookup = {};
+  for (const stage of parent.stages) {
+    for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+      taskLookup[stage.tasks[tidx].id] = stage.execution_order + '.' + (tidx + 1);
+    }
+  }
+  const edgesArr = parentEdges.filter(e => taskLookup[e.from_task_id] && taskLookup[e.to_task_id]).map(e => ({
+    from: taskLookup[e.from_task_id], to: taskLookup[e.to_task_id],
+    data: e.from_field_name, type: e.data_type
+  }));
+
+  // Prompts
+  const prompts = {};
+  function addPrompts(bp, prefix) {
+    for (const stage of bp.stages) {
+      for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+        const task = stage.tasks[tidx];
+        const tid = prefix + stage.execution_order + '.' + (tidx + 1);
+        const desc = (task.description || '').trim();
+        prompts[tid] = desc ? cleanPromptHtml(desc) : null;
+      }
+    }
+  }
+  addPrompts(parent, '');
+  childBps.forEach((bp, ci) => addPrompts(bp, 'C' + (ci + 1) + '.'));
+
+  // Doc reader config
+  const docReader = {};
+  function addDocReader(bp, prefix) {
+    for (const stage of bp.stages) {
+      for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+        const task = stage.tasks[tidx];
+        if (!task.field_instructions) continue;
+        const tid = prefix + stage.execution_order + '.' + (tidx + 1);
+        docReader[tid] = {
+          form: task.form_structure ? task.form_structure.form_name : null,
+          fields: task.field_instructions.map(fi => ({
+            n: fi.requested_field, t: fi.field_type,
+            helper: fi.additional_instructions || '',
+            multi: fi.multiple_values || false,
+            choices: fi.allowed_values.length ? fi.allowed_values.map(v => typeof v === 'object' ? (v.displayStringValue || v.stringValue || JSON.stringify(v)) : String(v)) : null
+          }))
+        };
+      }
+    }
+  }
+  addDocReader(parent, '');
+  childBps.forEach((bp, ci) => addDocReader(bp, 'C' + (ci + 1) + '.'));
+
+  // Stage flow
+  function buildFlow(bp) {
+    const flowEdges = new Set();
+    const withExplicit = new Set();
+    for (const stage of bp.stages) {
+      for (const next of bp.stages) {
+        if (next.start_after_stages.some(d => d.stage_id === stage.id)) {
+          withExplicit.add(next.id);
+          flowEdges.add(stage.execution_order + ',' + next.execution_order);
+        }
+      }
+    }
+    const sorted = [...bp.stages].sort((a, b) => a.execution_order - b.execution_order);
+    for (let i = 0; i < sorted.length - 1; i++) {
+      if (!withExplicit.has(sorted[i + 1].id) && !sorted[i + 1].start_on_workflow_start) {
+        flowEdges.add(sorted[i].execution_order + ',' + sorted[i + 1].execution_order);
+      }
+    }
+    return [...flowEdges].map(e => e.split(',').map(Number)).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  }
+
+  const stageFlow = buildFlow(parent);
+  const childFlow = childBps.length ? buildFlow(childBps[0]).map(e => ['C' + e[0], 'C' + e[1]]) : [];
+
+  return { stages: stagesArr, childStages: childStagesArr, parentEdges: edgesArr, taskPrompts: prompts, docReaderConfig: docReader, stageFlow, childFlow };
+}
+
+// ==============================================================
+// TEXT OUTPUT GENERATOR
+// ==============================================================
+
+function generateTextOutput(blueprints, data) {
+  const parent = blueprints[0];
+  const lines = [];
+
+  lines.push('=' .repeat(80));
+  lines.push('SECTION 1: TASK REGISTRY');
+  lines.push('=' .repeat(80));
+  lines.push('');
+
+  for (const stage of data.stages) {
+    lines.push('-'.repeat(80));
+    lines.push('STAGE ' + stage.id + ': ' + stage.name);
+    lines.push('  Trigger: ' + stage.trigger);
+    lines.push('  Condition: ' + (stage.condition || 'None (always runs)'));
+    lines.push('');
+
+    for (const task of stage.tasks) {
+      lines.push('  Task ' + task.id + ': ' + task.name);
+      lines.push('    Agent: ' + task.agent);
+
+      if (task.inputs.length) {
+        lines.push('    Inputs: ' + task.inputs.length);
+        task.inputs.forEach(i => lines.push('      - ' + i.n + ' (' + i.t + ') <- ' + i.src));
+      }
+      if (task.outputs.length) {
+        lines.push('    Outputs: ' + task.outputs.length);
+        task.outputs.forEach(o => lines.push('      - ' + o.n + ' (' + o.t + ')'));
+      }
+
+      const prompt = data.taskPrompts[task.id];
+      if (prompt) {
+        const plain = prompt.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+        lines.push('    Description:');
+        lines.push('      ' + plain.substring(0, 200) + (plain.length > 200 ? '...' : ''));
+      }
+      lines.push('');
+    }
+  }
+
+  lines.push('');
+  lines.push('=' .repeat(80));
+  lines.push('SECTION 2: EDGE TABLE + STAGE FLOW');
+  lines.push('=' .repeat(80));
+  lines.push('');
+  lines.push('EDGE TABLE');
+  lines.push('-'.repeat(80));
+
+  for (const edge of data.parentEdges) {
+    lines.push('  Task ' + edge.from + ' --[ ' + edge.data + ' (' + edge.type + ') ]--> Task ' + edge.to);
+  }
+
+  lines.push('');
+  lines.push('STAGE FLOW');
+  lines.push('-'.repeat(80));
+
+  const stageMap = {};
+  data.stages.forEach(s => { stageMap[s.id] = s; });
+  for (const [from, to] of data.stageFlow) {
+    const fromS = stageMap[from];
+    const toS = stageMap[to];
+    let line = 'Stage ' + from + ': ' + (fromS ? fromS.name : '?') + ' -> Stage ' + to + ': ' + (toS ? toS.name : '?');
+    if (toS && toS.condition) line += ' (IF ' + toS.condition + ')';
+    lines.push('  ' + line);
+  }
+
+  return lines.join('\n');
+}
+
+// ==============================================================
+// HTML OUTPUT GENERATOR
+// ==============================================================
+
+let generatedHtml = null;
+let generatedTxt = null;
+let templateHtml = null;
+
+async function loadTemplate() {
+  // Fetch the HTML template
+  const resp = await fetch('template.html');
+  if (!resp.ok) throw new Error('template.html not found. Make sure it is in the same directory as index.html');
+  return await resp.text();
+}
+
+function generateHtmlOutput(blueprints, data, template) {
+  const parent = blueprints[0];
+  const totalStages = data.stages.length + data.childStages.length;
+  const totalTasks = data.stages.reduce((s, st) => s + st.tasks.length, 0) + data.childStages.reduce((s, st) => s + st.tasks.length, 0);
+  const agentNames = new Set();
+  [...data.stages, ...data.childStages].forEach(s => s.tasks.forEach(t => { if (t.agentClass !== 'human') agentNames.add(t.agent); }));
+
+  const title = parent.name + ' - Data Flow Visualization';
+  const headerHtml = '<div id="app-header">\n' +
+    '  <h1>' + parent.name.replace(/</g,'&lt;') + '</h1>\n' +
+    '  <div class="stats-row">\n' +
+    '    <div class="stat"><strong>' + totalStages + '</strong>Stages</div>\n' +
+    '    <div class="stat"><strong>' + totalTasks + '</strong>Tasks</div>\n' +
+    '    <div class="stat"><strong>' + agentNames.size + '</strong>Agents</div>\n' +
+    '  </div>\n' +
+    '  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark theme">&#9790;</button>\n' +
+    '  <div class="view-toggle">\n' +
+    '    <button class="view-btn" data-view="simple" onclick="switchView(\'simple\')">Simple View</button>\n' +
+    '    <button class="view-btn active" data-view="detailed" onclick="switchView(\'detailed\')">Detailed View</button>\n' +
+    '  </div>\n' +
+    '</div>';
+
+  const graphNote = totalStages + ' stages | Click stage for details';
+
+  // Build data section
+  const dataSection = 'const stages = ' + JSON.stringify(data.stages) + ';\n\n' +
+    'const childStages = ' + JSON.stringify(data.childStages) + ';\n\n' +
+    'const parentEdges = ' + JSON.stringify(data.parentEdges) + ';\n\n' +
+    '// TASK PROMPTS & DOCUMENT READER CONFIG\n' +
+    'const taskPrompts=' + JSON.stringify(data.taskPrompts).replace(/</g,'\\u003c') + ';\n' +
+    'const docReaderConfig=' + JSON.stringify(data.docReaderConfig) + ';\n\n' +
+    '// DERIVED DATA\n' +
+    'const taskToStage={}, taskMap={}, adj={};\n' +
+    'const stageEdgeMap={}, aggTaskEdges={};\n' +
+    'function cssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}\n' +
+    'function getColorMap(){return{ai:cssVar("--agent-ai"),doc:cssVar("--agent-doc"),excel:cssVar("--agent-excel"),human:cssVar("--agent-human")||cssVar("--orange"),regrello:cssVar("--agent-regrello"),tabular:cssVar("--agent-tabular"),flash:cssVar("--agent-flash")}}\n' +
+    'var colorMap=null;\n' +
+    'function cm(agent){if(!colorMap)colorMap=getColorMap();return colorMap[agent]||cssVar("--accent")}\n' +
+    'function toggleTheme(){var r=document.documentElement;var cur=r.getAttribute("data-theme");var next=cur==="light"?"dark":"light";r.setAttribute("data-theme",next);colorMap=null;var btn=document.getElementById("theme-btn");if(btn)btn.textContent=next==="light"?"\\u263E":"\\u2600";if(window._simpleRendered){window._simpleRendered=false;renderedTabs={};renderSimpleView()}if(renderedTabs.vgraph){renderedTabs.vgraph=false;if(curTab==="vgraph")renderVisualGraph()}updateSvgMarkers()}\n' +
+    'function updateSvgMarkers(){var b=cssVar("--border"),a=cssVar("--accent");var s=document.querySelector("#arr-seq path");if(s)s.setAttribute("fill",b);var d=document.querySelector("#arr-data path");if(d)d.setAttribute("fill",a)}\n' +
+    'var agentShort={ai:"AI",doc:"Doc",excel:"Excel",human:"Human",regrello:"Regrello",tabular:"Tabular",flash:"Flash"};\n' +
+    'const clsMap={ai:"a-ai",doc:"a-doc",excel:"a-excel",human:"a-human",regrello:"a-regrello",tabular:"a-tabular",flash:"a-flash"};\n' +
+    'const ftClsMap={Document:"ft-doc",Text:"ft-text",Decimal:"ft-dec",Date:"ft-date",Checkbox:"ft-chk","Sync Object":"ft-sync",Various:"ft-sync"};\n\n' +
+    'function computeDerived(){\n' +
+    '  stages.forEach(s=>s.tasks.forEach(t=>{taskToStage[t.id]=s.id;taskMap[t.id]=t}));\n' +
+    '  childStages.forEach(s=>s.tasks.forEach(t=>{taskMap[t.id]=t}));\n' +
+    '  parentEdges.forEach(e=>{\n' +
+    '    if(!adj[e.from])adj[e.from]={up:new Set,dn:new Set,upF:{},dnF:{}};\n' +
+    '    if(!adj[e.to])adj[e.to]={up:new Set,dn:new Set,upF:{},dnF:{}};\n' +
+    '    adj[e.from].dn.add(e.to); adj[e.to].up.add(e.from);\n' +
+    '    if(!adj[e.from].dnF[e.to])adj[e.from].dnF[e.to]=[];\n' +
+    '    adj[e.from].dnF[e.to].push(e.data);\n' +
+    '    if(!adj[e.to].upF[e.from])adj[e.to].upF[e.from]=[];\n' +
+    '    adj[e.to].upF[e.from].push(e.data);\n' +
+    '    var k=e.from+"->"+e.to;\n' +
+    '    if(!aggTaskEdges[k])aggTaskEdges[k]={from:e.from,to:e.to,fields:[],types:[]};\n' +
+    '    aggTaskEdges[k].fields.push(e.data);aggTaskEdges[k].types.push(e.type);\n' +
+    '  });\n' +
+    '  parentEdges.forEach(e=>{\n' +
+    '    var fs=taskToStage[e.from],ts=taskToStage[e.to];\n' +
+    '    if(fs!==undefined&&ts!==undefined&&fs!==ts){\n' +
+    '      var k=fs+"->"+ts;\n' +
+    '      if(!stageEdgeMap[k])stageEdgeMap[k]={from:fs,to:ts,fields:new Set};\n' +
+    '      stageEdgeMap[k].fields.add(e.data);\n' +
+    '    }\n' +
+    '  });\n' +
+    '}\n' +
+    'computeDerived();\n\n' +
+    'const fieldIndex={};\n' +
+    'function buildFieldIndex(){\n' +
+    '  function proc(sList,bp){\n' +
+    '    sList.forEach(function(s){s.tasks.forEach(function(t){\n' +
+    '      t.outputs.forEach(function(o){\n' +
+    '        if(!fieldIndex[o.n])fieldIndex[o.n]={name:o.n,type:o.t,id:o.id,producers:[],consumers:[]};\n' +
+    '        fieldIndex[o.n].producers.push({taskId:t.id,stageId:s.id,bp:bp});\n' +
+    '      });\n' +
+    '      t.inputs.forEach(function(i){\n' +
+    '        if(!fieldIndex[i.n])fieldIndex[i.n]={name:i.n,type:i.t,id:i.id,producers:[],consumers:[]};\n' +
+    '        fieldIndex[i.n].consumers.push({taskId:t.id,stageId:s.id,bp:bp});\n' +
+    '      });\n' +
+    '    })});\n' +
+    '  }\n' +
+    '  proc(stages,"parent");proc(childStages,"child");\n' +
+    '}\n' +
+    'buildFieldIndex();\n\n' +
+    'const stageFlow=' + JSON.stringify(data.stageFlow) + ';\n' +
+    'const childFlow=' + JSON.stringify(data.childFlow) + ';';
+
+  // Replace placeholders
+  let result = template.replace('{{TITLE}}', title);
+  result = result.replace('{{HEADER_HTML}}', headerHtml);
+  result = result.replace('{{GRAPH_NOTE}}', graphNote);
+  result = result.replace('{{DATA_SECTION}}', dataSection);
+
+  return result;
+}
+
+// ==============================================================
+// FILE HANDLING
+// ==============================================================
+
+function setStatus(type, text) {
+  const bar = document.getElementById('status-bar');
+  const icon = document.getElementById('status-icon');
+  const txt = document.getElementById('status-text');
+  bar.className = 'status-bar visible ' + type;
+  txt.textContent = text;
+  if (type === 'loading') {
+    icon.innerHTML = '<span class="spinner"></span>';
+  } else if (type === 'success') {
+    icon.innerHTML = '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  } else {
+    icon.innerHTML = '';
+  }
+}
+
+async function processRexFile(file) {
+  setStatus('loading', 'Processing ' + file.name + '...');
+  document.getElementById('actions').classList.remove('show');
+
+  try {
+    // Load template
+    if (!templateHtml) {
+      templateHtml = await loadTemplate();
+    }
+
+    // Unzip
+    const zip = await JSZip.loadAsync(file);
+    const jsonFile = zip.file('blueprint_export.json');
+    if (!jsonFile) throw new Error('blueprint_export.json not found inside .rex file');
+
+    const jsonText = await jsonFile.async('text');
+    const rawData = JSON.parse(jsonText);
+
+    // Parse blueprints
+    const workflowTemplates = rawData.workflowTemplates || [];
+    if (!workflowTemplates.length) throw new Error('No workflow templates found in .rex file');
+
+    const blueprints = workflowTemplates.map(parseBlueprintData);
+
+    // Generate data structures
+    const data = generateDataStructures(blueprints);
+
+    // Generate outputs
+    generatedHtml = generateHtmlOutput(blueprints, data, templateHtml);
+    generatedTxt = generateTextOutput(blueprints, data);
+
+    // Success
+    const totalTasks = data.stages.reduce((s, st) => s + st.tasks.length, 0);
+    setStatus('success', blueprints[0].name + ' — ' + data.stages.length + ' stages, ' + totalTasks + ' tasks');
+    document.getElementById('actions').classList.add('show');
+
+  } catch (err) {
+    setStatus('error', err.message);
+    console.error(err);
+  }
+}
+
+// ==============================================================
+// UI EVENT HANDLERS
+// ==============================================================
+
+// Theme toggle
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const root = document.documentElement;
+  const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  root.setAttribute('data-theme', next);
+  document.getElementById('theme-toggle').innerHTML = next === 'light' ? '&#9790;' : '&#9788;';
+});
+
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.rex')) processRexFile(file);
+  else setStatus('error', 'Please drop a .rex file');
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) processRexFile(e.target.files[0]);
+});
+
+// Action buttons
+document.getElementById('btn-view').addEventListener('click', () => {
+  if (generatedHtml) {
+    document.open();
+    document.write(generatedHtml);
+    document.close();
+  }
+});
+document.getElementById('btn-download-html').addEventListener('click', () => {
+  if (generatedHtml) {
+    const blob = new Blob([generatedHtml], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'data_flow.html';
+    a.click();
+  }
+});
+document.getElementById('btn-download-txt').addEventListener('click', () => {
+  if (generatedTxt) {
+    const blob = new Blob([generatedTxt], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'parsed.txt';
+    a.click();
+  }
+});
+</script>
+</body>
+</html>
