@@ -820,10 +820,8 @@ fileInput.addEventListener('change', e => {
 // Action buttons
 document.getElementById('btn-view').addEventListener('click', () => {
   if (generatedHtml) {
-    const w = window.open('', '_blank');
-    w.document.open();
-    w.document.write(generatedHtml);
-    w.document.close();
+    const blob = new Blob([generatedHtml], { type: 'text/html' });
+    window.open(URL.createObjectURL(blob), '_blank');
   }
 });
 document.getElementById('btn-download-html').addEventListener('click', () => {
