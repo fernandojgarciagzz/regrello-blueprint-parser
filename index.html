@@ -820,9 +820,10 @@ fileInput.addEventListener('change', e => {
 // Action buttons
 document.getElementById('btn-view').addEventListener('click', () => {
   if (generatedHtml) {
-    document.open();
-    document.write(generatedHtml);
-    document.close();
+    const w = window.open('', '_blank');
+    w.document.open();
+    w.document.write(generatedHtml);
+    w.document.close();
   }
 });
 document.getElementById('btn-download-html').addEventListener('click', () => {
