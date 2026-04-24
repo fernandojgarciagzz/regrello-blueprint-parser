@@ -6,11 +6,11 @@
 <title>Regrello Blueprint Parser</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
 :root{--bg:#f0f2f5;--surface:#ffffff;--surface2:#f7f8fa;--border:#e1e4e8;--border-hover:#c9cdd3;--text:#1b1f24;--text-dim:#636c76;--text-faint:#9ea7b2;--shadow-rgb:31,35,40;--accent:#0969da;--accent-light:#ddf4ff;--accent-subtle:rgba(9,105,218,0.08);--green:#1a7f37;--green-light:#dafbe1;--orange:#bc4c00;--orange-light:#fff1e5;--glow:0 0 0 3px rgba(9,105,218,0.15);--card-shadow:0 1px 3px rgba(0,0,0,0.04),0 6px 16px rgba(0,0,0,0.06);--card-shadow-hover:0 4px 12px rgba(0,0,0,0.08),0 12px 28px rgba(0,0,0,0.1)}
 :root[data-theme="dark"]{--bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;--border-hover:#484f58;--text:#e6edf3;--text-dim:#7d8590;--text-faint:#545d68;--shadow-rgb:0,0,0;--accent:#4f86f7;--accent-light:rgba(79,134,247,0.15);--accent-subtle:rgba(79,134,247,0.08);--green:#3fb950;--green-light:rgba(63,185,80,0.15);--orange:#e3813a;--orange-light:rgba(227,129,58,0.15);--glow:0 0 0 3px rgba(79,134,247,0.2);--card-shadow:0 1px 3px rgba(0,0,0,0.2),0 6px 16px rgba(0,0,0,0.3);--card-shadow-hover:0 4px 12px rgba(0,0,0,0.3),0 12px 28px rgba(0,0,0,0.4)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .upload-page{text-align:center;max-width:560px;width:100%;padding:40px 24px}
 .logo{margin-bottom:12px}
 .logo img{width:80px;height:80px;object-fit:contain}
@@ -538,7 +538,7 @@ function generateDataStructures(blueprints) {
   }
 
   const stageFlow = buildFlow(parent);
-  const childFlow = childBps.length ? buildFlow(childBps[0]).map(e => ['C' + e[0], 'C' + e[1]]) : [];
+  const childFlow = childBps.length ? buildFlow(childBps[0]).map(e => ['C1.' + e[0], 'C1.' + e[1]]) : [];
 
   return { stages: stagesArr, childStages: childStagesArr, parentEdges: edgesArr, taskPrompts: prompts, docReaderConfig: docReader, stageFlow, childFlow };
 }
