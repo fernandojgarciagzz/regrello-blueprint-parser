@@ -513,10 +513,12 @@ function renderSimpleGraph(sList,flowEdges,edgeMap,isChild){
     backBtn.style.display='none';
   }
   // Use dagre for automatic stage-level layout
+  // Sanitize IDs for dagre (dots are treated as hierarchy separators)
+  function nid(id){return ('s'+id).replace(/\./g,'-')}
   var dg=new dagreD3.graphlib.Graph().setGraph({rankdir:'TB',ranksep:GAP,nodesep:30,marginx:20,marginy:MT}).setDefaultEdgeLabel(function(){return{}});
-  sList.forEach(function(s){dg.setNode('s'+s.id,{width:NW,height:NH,label:s})});
+  sList.forEach(function(s){dg.setNode(nid(s.id),{width:NW,height:NH,label:s})});
   if(!isChild&&childStages.length)dg.setNode('child',{width:180,height:48});
-  flowEdges.forEach(function(e){dg.setEdge('s'+e[0],'s'+e[1])});
+  flowEdges.forEach(function(e){dg.setEdge(nid(e[0]),nid(e[1]))});
   // Find which stage links to child (parent only)
   var childLinkStageId=null;
   if(!isChild&&childStages.length){
@@ -524,7 +526,7 @@ function renderSimpleGraph(sList,flowEdges,edgeMap,isChild){
       if(t._isChildLink||t.agentClass==='ai'&&t.name.toLowerCase().indexOf('linked')>=0)childLinkStageId=s.id;
     })});
     if(!childLinkStageId&&sList.length>3)childLinkStageId=sList[Math.floor(sList.length/5)].id;
-    if(childLinkStageId)dg.setEdge('s'+childLinkStageId,'child');
+    if(childLinkStageId)dg.setEdge(nid(childLinkStageId),'child');
   }
   dagreD3.dagre.layout(dg);
   var W=dg.graph().width||800,H=dg.graph().height||600;
@@ -548,7 +550,7 @@ function renderSimpleGraph(sList,flowEdges,edgeMap,isChild){
   dg.nodes().forEach(function(n){var nd=dg.node(n);nodePos[n]={x:nd.x,y:nd.y,w:nd.width,h:nd.height}});
   var si=0;
   Object.values(edgeMap).forEach(function(e){
-    var a=nodePos['s'+e.from],b=nodePos['s'+e.to];if(!a||!b)return;
+    var a=nodePos[nid(e.from)],b=nodePos[nid(e.to)];if(!a||!b)return;
     var flds=Array.from(e.fields),sObj=sList.find(function(st){return st.id===e.from});
     var col=sObj?cm(dominantAgent(sObj)):cssVar('--accent');
     var side=(si%2?1:-1);si++;
@@ -569,7 +571,7 @@ function renderSimpleGraph(sList,flowEdges,edgeMap,isChild){
   // Draw stage nodes
   var ng=g.append('g');
   sList.forEach(function(s){
-    var nd=dg.node('s'+s.id);if(!nd)return;
+    var nd=dg.node(nid(s.id));if(!nd)return;
     var px=nd.x-nd.width/2,py=nd.y-nd.height/2;
     var dom=dominantAgent(s),col=cm(dom);
     var sg=ng.append('g').attr('class','stage-node').attr('data-sid',s.id)
@@ -579,8 +581,7 @@ function renderSimpleGraph(sList,flowEdges,edgeMap,isChild){
     if(s.condition)sg.append('rect').attr('class','sn-stripe').attr('width',5).attr('height',nd.height).attr('fill',cssVar('--conditional')).attr('rx',2);
     var ac={};s.tasks.forEach(function(t){ac[t.agentClass]=true});
     Object.keys(ac).forEach(function(a,i){sg.append('circle').attr('class','agent-dot').attr('cx',nd.width-12-i*14).attr('cy',12).attr('r',5).attr('fill',cm(a))});
-    var prefix=isChild?'C':'S';
-    var lbl=prefix+s.id+': '+s.name,maxCh=Math.floor(nd.width/7.5);
+    var lbl=(isChild?'':'S')+s.id+': '+s.name,maxCh=Math.floor(nd.width/7.5);
     if(lbl.length>maxCh)lbl=lbl.substring(0,maxCh-1)+'\u2026';
     sg.append('text').attr('class','sn-label').attr('x',s.condition?14:10).attr('y',nd.height/2-4).text(lbl);
     sg.append('text').attr('class','sn-sub').attr('x',s.condition?14:10).attr('y',nd.height/2+12)
