@@ -1,0 +1,570 @@
+{
+  "$schema": "https://tr.designtokens.org/format/",
+  "meta": {
+    "source": "Figma – Regrello Design System (Design-System file)",
+    "figmaFileKey": "0kOWTk0cXyGQxpQRqhqxQL",
+    "libraryKey": "lk-1468d9b093c4653b44c7d5710d7a977747b85d8043d02f217d6f70e6146d3134fe91b7d52b9abc854aca6fc78ba7c04f0759962003579eb7e081af74e55272a7",
+    "extractedAt": "2026-04-24"
+  },
+
+  "color": {
+    "text": {
+      "default":     { "value": "#1b2024", "type": "color" },
+      "muted":       { "value": "#5d656c", "type": "color" },
+      "placeholder": { "value": "#88929a", "type": "color" },
+      "disabled":    { "value": "#b3bdc5", "type": "color" },
+      "interactive": { "value": "#1672c7", "type": "color" }
+    },
+
+    "background": {
+      "default": { "value": "#ffffff", "type": "color" },
+      "soft":    { "value": "#f7f9fb", "type": "color" }
+    },
+
+    "border": {
+      "default": { "value": "#d5dbe0", "type": "color" }
+    },
+
+    "neutral": {
+      "transparent":           { "value": "rgba(255,255,255,0)", "type": "color" },
+      "transparent-hovered":   { "value": "#eef1f3", "type": "color" },
+      "transparent-pressed":   { "value": "#e5e9ec", "type": "color" },
+      "soft":                  { "value": "#eef1f3", "type": "color" },
+      "soft-hovered":          { "value": "#e5e9ec", "type": "color" },
+      "soft-pressed":          { "value": "#dde2e6", "type": "color" },
+      "solid":                 { "value": "#88929a", "type": "color" },
+      "solid-hovered":         { "value": "#7c868e", "type": "color" },
+      "border":                { "value": "#d5dbe0", "type": "color" }
+    },
+
+    "primary": {
+      "transparent-hovered":   { "value": "#eaf3fe", "type": "color" },
+      "transparent-pressed":   { "value": "#dcecff", "type": "color" },
+      "soft":                  { "value": "#eaf3fe", "type": "color" },
+      "soft-hovered":          { "value": "#dcecff", "type": "color" },
+      "soft-pressed":          { "value": "#cbe2ff", "type": "color" },
+      "solid":                 { "value": "#1875d8", "type": "color" },
+      "solid-hovered":         { "value": "#0067c9", "type": "color" },
+      "text-muted":            { "value": "#1372d4", "type": "color" },
+      "border":                { "value": "#b7d5fb", "type": "color" }
+    },
+
+    "danger": {
+      "transparent-hovered":   { "value": "#fdeceb", "type": "color" },
+      "transparent-pressed":   { "value": "#ffdddc", "type": "color" },
+      "soft":                  { "value": "#fdeceb", "type": "color" },
+      "soft-hovered":          { "value": "#ffdddc", "type": "color" },
+      "soft-pressed":          { "value": "#fed0ce", "type": "color" },
+      "solid":                 { "value": "#c8414a", "type": "color" },
+      "solid-hovered":         { "value": "#b8323d", "type": "color" },
+      "text-muted":            { "value": "#c33c46", "type": "color" },
+      "border":                { "value": "#f7c0bf", "type": "color" }
+    },
+
+    "warning": {
+      "transparent-hovered":   { "value": "#ffeed4", "type": "color" },
+      "transparent-pressed":   { "value": "#ffe2bc", "type": "color" },
+      "soft":                  { "value": "#ffeed4", "type": "color" },
+      "soft-hovered":          { "value": "#ffe2bc", "type": "color" },
+      "soft-pressed":          { "value": "#ffd7a4", "type": "color" },
+      "solid":                 { "value": "#c68006", "type": "color" },
+      "solid-hovered":         { "value": "#b97400", "type": "color" },
+      "text-muted":            { "value": "#955d00", "type": "color" },
+      "border":                { "value": "#f9ca92", "type": "color" }
+    },
+
+    "success": {
+      "transparent-hovered":   { "value": "#e4f7ef", "type": "color" },
+      "transparent-pressed":   { "value": "#d3f1e5", "type": "color" },
+      "soft":                  { "value": "#e4f7ef", "type": "color" },
+      "soft-hovered":          { "value": "#d3f1e5", "type": "color" },
+      "soft-pressed":          { "value": "#c1e9d9", "type": "color" },
+      "solid":                 { "value": "#0f8062", "type": "color" },
+      "solid-hovered":         { "value": "#007255", "type": "color" },
+      "text-muted":            { "value": "#047c5f", "type": "color" },
+      "border":                { "value": "#acddc9", "type": "color" }
+    }
+  },
+
+  "font": {
+    "family": {
+      "heading": { "value": "Inter", "type": "fontFamily" },
+      "body":    { "value": "Inter", "type": "fontFamily" }
+    },
+    "weight": {
+      "regular":  { "value": 400, "type": "fontWeight" },
+      "medium":   { "value": 500, "type": "fontWeight" },
+      "semibold": { "value": 600, "type": "fontWeight" },
+      "bold":     { "value": 700, "type": "fontWeight" }
+    },
+    "size": {
+      "heading-1":   { "value": "30px", "type": "fontSize" },
+      "heading-2":   { "value": "28px", "type": "fontSize" },
+      "heading-3":   { "value": "20px", "type": "fontSize" },
+      "body":        { "value": "14px", "type": "fontSize" },
+      "body-xsmall": { "value": "12px", "type": "fontSize" }
+    },
+    "lineHeight": {
+      "heading-1":   { "value": "36px", "type": "lineHeight" },
+      "body":        { "value": "20px", "type": "lineHeight" },
+      "body-xsmall": { "value": "16px", "type": "lineHeight" }
+    }
+  },
+
+  "spacing": {
+    "1":  { "value": "4px",  "type": "spacing", "description": "padding / margins" },
+    "2":  { "value": "8px",  "type": "spacing" },
+    "3":  { "value": "12px", "type": "spacing" },
+    "4":  { "value": "16px", "type": "spacing" },
+    "5":  { "value": "20px", "type": "spacing" },
+    "8":  { "value": "32px", "type": "spacing" },
+    "16": { "value": "64px", "type": "spacing" }
+  },
+
+  "borderRadius": {
+    "small":  { "value": "4px",    "type": "borderRadius", "description": "Default / small radius" },
+    "medium": { "value": "8px",    "type": "borderRadius" },
+    "large":  { "value": "12px",   "type": "borderRadius" },
+    "xl":     { "value": "16px",   "type": "borderRadius" },
+    "2xl":    { "value": "20px",   "type": "borderRadius" },
+    "circle": { "value": "9999px", "type": "borderRadius" }
+  },
+
+  "shadow": {
+    "elevation-1-down": {
+      "value": "0 1px 2px 0 rgba(0, 0, 0, 0.16), 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 0 2px 0 rgba(0, 0, 0, 0.06)",
+      "type": "boxShadow",
+      "description": "Level 1 - Default shadow (downward)"
+    },
+    "elevation-1-up": {
+      "value": "0 -1px 2px 0 rgba(0, 0, 0, 0.16), 0 -1px 2px 0 rgba(0, 0, 0, 0.06), 0 0 2px 0 rgba(0, 0, 0, 0.06)",
+      "type": "boxShadow",
+      "description": "Level 1 - Upward shadow"
+    },
+    "elevation-2-down": {
+      "value": "0 2px 8px 0 rgba(0, 0, 0, 0.16), 0 1px 4px 0 rgba(0, 0, 0, 0.06), 0 0 2px 0 rgba(0, 0, 0, 0.06)",
+      "type": "boxShadow",
+      "description": "Level 2 - Used on menus"
+    },
+    "elevation-2-up": {
+      "value": "0 -2px 8px 0 rgba(0, 0, 0, 0.16), 0 -1px 4px 0 rgba(0, 0, 0, 0.06), 0 0 2px 0 rgba(0, 0, 0, 0.06)",
+      "type": "boxShadow",
+      "description": "Level 2 - Used on docked form footer, utility bar"
+    },
+    "elevation-3-down": {
+      "value": "0 4px 14px 0 rgba(0, 0, 0, 0.16), 0 2px 8px 0 rgba(0, 0, 0, 0.06), 0 0 2px 0 rgba(0, 0, 0, 0.06)",
+      "type": "boxShadow",
+      "description": "Level 3 - Used on panels, docked composer, tooltips"
+    },
+    "elevation-3-up": {
+      "value": "0 -4px 14px 0 rgba(0, 0, 0, 0.16), 0 -2px 8px 0 rgba(0, 0, 0, 0.06), 0 0 2px 0 rgba(0, 0, 0, 0.06)",
+      "type": "boxShadow",
+      "description": "Level 3 - Upward shadow"
+    },
+    "elevation-4-down": {
+      "value": "0 8px 24px 0 rgba(0, 0, 0, 0.16), 0 4px 14px 0 rgba(0, 0, 0, 0.06), 0 0 2px 0 rgba(0, 0, 0, 0.06)",
+      "type": "boxShadow",
+      "description": "Level 4 - Used on popovers, modals"
+    },
+    "elevation-4-up": {
+      "value": "0 -8px 24px 0 rgba(0, 0, 0, 0.16), 0 -4px 14px 0 rgba(0, 0, 0, 0.06), 0 0 2px 0 rgba(0, 0, 0, 0.06)",
+      "type": "boxShadow",
+      "description": "Level 4 - Upward shadow (docked composer)"
+    },
+    "card": {
+      "value": "0px 1px 2px 0px rgba(0, 0, 0, 0.05)",
+      "type": "boxShadow",
+      "description": "Subtle shadow used on Card component"
+    }
+  },
+
+  "components": {
+    "card": {
+      "description": "Card container with two variants: Default (white) and Muted (soft gray background)",
+      "variants": {
+        "default": {
+          "background": "var(--color/background, #ffffff)",
+          "border": "1px solid var(--color/border, #d5dbe0)",
+          "borderRadius": "var(--border-radius/small, 4px)",
+          "shadow": "0px 1px 2px 0px rgba(0,0,0,0.05)",
+          "padding": "16px",
+          "overflow": "clip",
+          "font": {
+            "family": "Inter",
+            "weight": 400,
+            "size": "14px",
+            "lineHeight": "20px",
+            "color": "var(--color/text/default, #1b2024)"
+          }
+        },
+        "muted": {
+          "background": "var(--color/background-soft, #f7f9fb)",
+          "border": "1px solid var(--color/border, #d5dbe0)",
+          "borderRadius": "var(--border-radius/small, 4px)",
+          "shadow": "0px 1px 2px 0px rgba(0,0,0,0.05)",
+          "padding": "16px",
+          "overflow": "clip",
+          "font": {
+            "family": "Inter",
+            "weight": 400,
+            "size": "14px",
+            "lineHeight": "20px",
+            "color": "var(--color/text/default, #1b2024)"
+          }
+        }
+      }
+    },
+
+    "callout": {
+      "description": "Alert/banner with 5 intent variants (Neutral, Primary, Danger, Success, Warning). Each has a normal (14px) and compact (12px) size.",
+      "shared": {
+        "borderRadius": "var(--border-radius/small, 4px)",
+        "overflow": "clip",
+        "display": "flex",
+        "alignItems": "flex-start",
+        "iconSize": "20px",
+        "iconSizeCompact": "16px",
+        "font": {
+          "family": "Inter",
+          "titleWeight": 600,
+          "bodyWeight": 400,
+          "size": "14px",
+          "lineHeight": "20px",
+          "sizeCompact": "12px",
+          "lineHeightCompact": "16px",
+          "bodyColor": "var(--color/text/default, #1b2024)"
+        },
+        "padding": {
+          "normal": "12px",
+          "compact": "6px 6px 4px 4px"
+        },
+        "gap": {
+          "normal": "8px",
+          "compact": "4px"
+        },
+        "titleBodyGap": "2px"
+      },
+      "variants": {
+        "neutral": {
+          "background": "var(--color/neutral/soft, #eef1f3)",
+          "border": "1px solid var(--color/neutral/border, #d5dbe0)",
+          "titleColor": "var(--color/text/default, #1b2024)"
+        },
+        "primary": {
+          "background": "var(--color/primary/soft, #eaf3fe)",
+          "border": "1px solid var(--color/primary/border, #b7d5fb)",
+          "titleColor": "var(--color/primary/text-muted, #1372d4)"
+        },
+        "danger": {
+          "background": "var(--color/danger/soft, #fdeceb)",
+          "border": "1px solid var(--color/danger/border, #f7c0bf)",
+          "titleColor": "var(--color/danger/text-muted, #c33c46)"
+        },
+        "success": {
+          "background": "var(--color/success/soft, #e4f7ef)",
+          "border": "1px solid var(--color/success/border, #acddc9)",
+          "titleColor": "var(--color/success/text-muted, #047c5f)"
+        },
+        "warning": {
+          "background": "var(--color/warning/soft, #ffeed4)",
+          "border": "1px solid var(--color/warning/border, #f9ca92)",
+          "titleColor": "var(--color/warning/text-muted, #955d00)"
+        }
+      }
+    },
+
+    "button": {
+      "description": "Button component from the Regrello Design System library. Component key: 1a305e610e295c828f805e623584d3595c0602bc",
+      "note": "Exact variant specs not extractable from Figma node; using design system color tokens for styling.",
+      "styles": {
+        "primary": {
+          "background": "var(--color/primary/solid, #1875d8)",
+          "backgroundHover": "var(--color/primary/solid-hovered, #0067c9)",
+          "color": "#ffffff",
+          "borderRadius": "var(--border-radius/small, 4px)",
+          "fontWeight": 600,
+          "fontSize": "14px"
+        },
+        "neutral": {
+          "background": "var(--color/neutral/soft, #eef1f3)",
+          "backgroundHover": "var(--color/neutral/soft-hovered, #e5e9ec)",
+          "color": "var(--color/text/default, #1b2024)",
+          "borderRadius": "var(--border-radius/small, 4px)",
+          "fontWeight": 600,
+          "fontSize": "14px"
+        },
+        "danger": {
+          "background": "var(--color/danger/solid, #c8414a)",
+          "backgroundHover": "var(--color/danger/solid-hovered, #b8323d)",
+          "color": "#ffffff",
+          "borderRadius": "var(--border-radius/small, 4px)",
+          "fontWeight": 600,
+          "fontSize": "14px"
+        }
+      }
+    },
+
+    "input": {
+      "description": "Text input field from the Regrello Design System library. Component key: 39fed4ed8e7a203995c49773d768cb7dcadf8b96",
+      "styles": {
+        "background": "var(--color/background, #ffffff)",
+        "border": "1px solid var(--color/border, #d5dbe0)",
+        "borderRadius": "var(--border-radius/small, 4px)",
+        "padding": "8px 12px",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "fontFamily": "Inter",
+        "fontWeight": 400,
+        "color": "var(--color/text/default, #1b2024)",
+        "placeholderColor": "var(--color/text/placeholder, #88929a)",
+        "disabledColor": "var(--color/text/disabled, #b3bdc5)",
+        "focusBorderColor": "var(--color/primary/solid, #1875d8)"
+      }
+    },
+
+    "checkbox": {
+      "description": "Checkbox component. Component key: a28242fad5191358e89bd3135e2237e46e6b1bc5",
+      "styles": {
+        "size": "16px",
+        "borderRadius": "var(--border-radius/small, 4px)",
+        "border": "1px solid var(--color/border, #d5dbe0)",
+        "checkedBackground": "var(--color/primary/solid, #1875d8)",
+        "checkedBorder": "var(--color/primary/solid, #1875d8)",
+        "checkmarkColor": "#ffffff"
+      }
+    },
+
+    "radioButton": {
+      "description": "Radio button component. Component key: a7c7ffdd8795542dae500c63512cfc07e67d2276",
+      "styles": {
+        "size": "16px",
+        "borderRadius": "9999px",
+        "border": "1px solid var(--color/border, #d5dbe0)",
+        "selectedDotColor": "var(--color/primary/solid, #1875d8)",
+        "selectedBorder": "var(--color/primary/solid, #1875d8)"
+      }
+    },
+
+    "select": {
+      "description": "Select/dropdown component. Component key: 6de9d06b4c82cfe9c4b17a64239a6ee093554e28",
+      "styles": {
+        "background": "var(--color/background, #ffffff)",
+        "border": "1px solid var(--color/border, #d5dbe0)",
+        "borderRadius": "var(--border-radius/small, 4px)",
+        "padding": "8px 12px",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "fontFamily": "Inter",
+        "color": "var(--color/text/default, #1b2024)",
+        "dropdownShadow": "0 2px 8px 0 rgba(0,0,0,0.16), 0 1px 4px 0 rgba(0,0,0,0.06), 0 0 2px 0 rgba(0,0,0,0.06)"
+      }
+    },
+
+    "tooltip": {
+      "description": "Tooltip component. Component key: 1418507ad8f2685c00d17b565209e1e9847b9377",
+      "styles": {
+        "background": "var(--color/text/default, #1b2024)",
+        "color": "#ffffff",
+        "borderRadius": "var(--border-radius/small, 4px)",
+        "padding": "4px 8px",
+        "fontSize": "12px",
+        "lineHeight": "16px",
+        "fontFamily": "Inter",
+        "fontWeight": 400,
+        "shadow": "0 4px 14px 0 rgba(0,0,0,0.16), 0 2px 8px 0 rgba(0,0,0,0.06), 0 0 2px 0 rgba(0,0,0,0.06)"
+      }
+    },
+
+    "popover": {
+      "description": "Popover container. Component key: a8f03e024e62e7fd40d33bb7078de5af22011c13",
+      "styles": {
+        "background": "var(--color/background, #ffffff)",
+        "border": "1px solid var(--color/border, #d5dbe0)",
+        "borderRadius": "var(--border-radius/medium, 8px)",
+        "padding": "12px",
+        "shadow": "0 8px 24px 0 rgba(0,0,0,0.16), 0 4px 14px 0 rgba(0,0,0,0.06), 0 0 2px 0 rgba(0,0,0,0.06)"
+      }
+    },
+
+    "avatar": {
+      "description": "Avatar component. Component key: f4f28c12063a223f0a4cf559215f4f58d9f355fa",
+      "styles": {
+        "borderRadius": "9999px",
+        "sizes": {
+          "sm": "24px",
+          "md": "32px",
+          "lg": "40px"
+        },
+        "background": "var(--color/primary/soft, #eaf3fe)",
+        "color": "var(--color/primary/solid, #1875d8)",
+        "fontWeight": 600
+      }
+    },
+
+    "datePicker": {
+      "description": "Date picker component. Component key: 2b8b60912eacf1e8787b5e9a81fcdae4b8c36e20",
+      "note": "Not accessible via Figma library search API. Styles inferred from design system patterns.",
+      "styles": {
+        "background": "var(--color/background, #ffffff)",
+        "border": "1px solid var(--color/border, #d5dbe0)",
+        "borderRadius": "var(--border-radius/small, 4px)",
+        "padding": "8px 12px",
+        "fontSize": "14px",
+        "fontFamily": "Inter",
+        "focusBorderColor": "var(--color/primary/solid, #1875d8)",
+        "selectedDayBackground": "var(--color/primary/solid, #1875d8)",
+        "selectedDayColor": "#ffffff",
+        "todayBorder": "1px solid var(--color/primary/solid, #1875d8)",
+        "hoverBackground": "var(--color/primary/transparent-hovered, #eaf3fe)"
+      }
+    },
+
+    "dateTimePicker": {
+      "description": "Date time picker component. Component key: b844ba955ec0e860145b1c8f244f432ea38c3f71",
+      "note": "Not accessible via Figma library search API. Extends datePicker with time selector."
+    },
+
+    "tab": {
+      "description": "Tab component. Component key: e585f1bff332ac1ca72a81513f39bc6d20dde0de",
+      "note": "Not accessible via Figma library search API. Styles inferred from design system patterns.",
+      "styles": {
+        "fontFamily": "Inter",
+        "fontSize": "13px",
+        "fontWeight": 600,
+        "color": {
+          "default": "var(--color/text/muted, #5d656c)",
+          "active": "var(--color/primary/solid, #1875d8)",
+          "hover": "var(--color/text/default, #1b2024)"
+        },
+        "borderBottom": {
+          "default": "3px solid transparent",
+          "active": "3px solid var(--color/primary/solid, #1875d8)"
+        },
+        "background": {
+          "default": "transparent",
+          "active": "var(--color/primary/transparent-hovered, #eaf3fe)",
+          "hover": "var(--color/neutral/transparent-hovered, #eef1f3)"
+        },
+        "padding": "12px 24px"
+      }
+    },
+
+    "timelineStep": {
+      "description": "Timeline step component. Component key: 0fa6975e7997c10fdb6ce2c20742e51b720e74d5",
+      "note": "Not accessible via Figma library search API. Styles inferred from design system patterns.",
+      "styles": {
+        "connectorColor": "var(--color/border, #d5dbe0)",
+        "connectorWidth": "2px",
+        "stepCircle": {
+          "size": "28px",
+          "borderRadius": "9999px",
+          "background": {
+            "completed": "var(--color/primary/solid, #1875d8)",
+            "active": "var(--color/primary/solid, #1875d8)",
+            "pending": "var(--color/neutral/soft, #eef1f3)"
+          },
+          "color": {
+            "completed": "#ffffff",
+            "active": "#ffffff",
+            "pending": "var(--color/text/muted, #5d656c)"
+          }
+        },
+        "label": {
+          "fontFamily": "Inter",
+          "fontSize": "14px",
+          "fontWeight": 600
+        }
+      }
+    },
+
+    "buttonGroup": {
+      "description": "Button group component. Component key: 4dbc6add68bfb360aef367faca956e0af174b154",
+      "note": "Not accessible via Figma library search API. Inferred: adjacent buttons sharing border.",
+      "styles": {
+        "gap": "0px",
+        "borderRadius": "var(--border-radius/small, 4px)",
+        "childBorderRadius": "0px",
+        "firstChildBorderRadius": "var(--border-radius/small, 4px) 0 0 var(--border-radius/small, 4px)",
+        "lastChildBorderRadius": "0 var(--border-radius/small, 4px) var(--border-radius/small, 4px) 0"
+      }
+    },
+
+    "numericInput": {
+      "description": "Numeric input with increment/decrement buttons. Component key: 98680a3e1ba2c7468b7eaeb8a836b83de30a341c",
+      "note": "Not accessible via Figma library search API. Extends input component."
+    },
+
+    "phoneInput": {
+      "description": "Phone input with country code selector. Component key: 3b8b3aa7f6803c883d1664e669bf4f46f6e8aec1",
+      "note": "Not accessible via Figma library search API. Extends input component with country dropdown."
+    },
+
+    "richTextInput": {
+      "description": "Rich text input with formatting toolbar. Component key: f81e0a752847d08a5378ccc21fa8b54475fb5c84",
+      "note": "Not accessible via Figma library search API. Extends input component with toolbar."
+    },
+
+    "signatureInput": {
+      "description": "Signature input field. Component key: f33a669ad6805864958f451e901e012b719d06c2",
+      "note": "Not accessible via Figma library search API."
+    },
+
+    "dataGridV2": {
+      "description": "Data Grid V2 with Column Header and Cell sub-components. Found in separate 'Components' library, not the Regrello Design System library.",
+      "note": "DataGrid Cell found in library 'Components' (lk-5e9d2fe1...). Styles inferred from design system patterns.",
+      "styles": {
+        "headerRow": {
+          "background": "var(--color/background, #ffffff)",
+          "borderBottom": "2px solid var(--color/primary/solid, #1875d8)",
+          "fontSize": "10px",
+          "fontWeight": 700,
+          "textTransform": "uppercase",
+          "letterSpacing": "0.6px",
+          "color": "var(--color/primary/text-muted, #1372d4)",
+          "padding": "10px 14px"
+        },
+        "cell": {
+          "padding": "8px 14px",
+          "borderBottom": "1px solid var(--color/border, #d5dbe0)",
+          "fontSize": "13px",
+          "fontFamily": "Inter"
+        },
+        "rowHover": {
+          "background": "var(--color/primary/transparent-hovered, #eaf3fe)"
+        }
+      },
+      "subComponents": {
+        "columnHeader": {
+          "componentKeys": [
+            "53d4e1879409b694f2b90de909e01e5158f9e19a",
+            "dbde0fd1efa1d6411cc93270bc9d8a3db5628c38"
+          ]
+        },
+        "cell": {
+          "componentKey": "72c5e820d7a9ca7ef6b968daeab48f51f47e635f"
+        }
+      }
+    },
+
+    "addCreatePage": {
+      "description": "Add/Create Page layout components (Header, Sidebar, Footer, Section)",
+      "subComponents": {
+        "header":         { "componentKey": "4577b647e52b275201a0aeb132fff966c4ea8740" },
+        "sidebar":        { "componentKey": "7f55bdedf04d7ddfa383dcffea917a68c396c931" },
+        "footer":         { "componentKey": "a458c16ec5399187fbf86b0bf415a1dbdfb741e0" },
+        "sidebarSection": { "componentKey": "682456465bf83b5011c04e4c6d13450c4ec75081" }
+      }
+    },
+
+    "icons": {
+      "description": "Icon library with multiple named icons",
+      "examples": [
+        { "name": "Icon / Circle",          "componentKey": "c4e4e8c92e204ad21b3738721a15c371f04bfded" },
+        { "name": "Icon / Settings",        "componentKey": "301d404574dc4305e4f5a82ab44fdec545f00f17" },
+        { "name": "Icon / Import",          "componentKey": "389db1e4ecacf183e07a0cf6444cfa179f4b646b" },
+        { "name": "Icon / Person Check",    "componentKey": "523ad2a239d0e9013ca8d39a02891b5d63919b81" },
+        { "name": "Icon / Approval In Progress", "componentKey": "d930be101ebd200c35837d073d6acc38718f9102" }
+      ]
+    }
+  }
+}
