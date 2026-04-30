@@ -2272,7 +2272,7 @@ class RexParserV4:
             f"function ftIcon(type){{var c=ftClsMap[type];if(!c)return'';return'<span class=\"ft-icon '+c+'\" title=\"'+type+'\"></span>'}}\n\n"
             f"function computeDerived(){{\n"
             f"  stages.forEach(s=>s.tasks.forEach(t=>{{taskToStage[t.id]=s.id;taskMap[t.id]=t}}));\n"
-            f"  childStages.forEach(s=>s.tasks.forEach(t=>{{taskMap[t.id]=t}}));\n"
+            f"  childStages.forEach(s=>s.tasks.forEach(t=>{{taskToStage[t.id]=s.id;taskMap[t.id]=t}}));\n"
             f"  parentEdges.forEach(e=>{{\n"
             f"    if(!adj[e.from])adj[e.from]={{up:new Set,dn:new Set,upF:{{}},dnF:{{}}}};\n"
             f"    if(!adj[e.to])adj[e.to]={{up:new Set,dn:new Set,upF:{{}},dnF:{{}}}};\n"
