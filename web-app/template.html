@@ -1469,8 +1469,8 @@ function renderStageBox(s,isChildStage){
   h+='<div class="sf-stage-body">';
   s.tasks.forEach(function(t){
     if(t._isChildLink&&!sfViewingChild&&!fullProcess)h+=renderChildInvokeCard(t);
+    else if(t._isChildLink&&fullProcess&&t._childIdx!=null&&childBlueprints[t._childIdx])h+=renderChildBpContainer(t,childBlueprints[t._childIdx]);
     else h+=renderCanvasTaskCard(t);
-    if(t._isChildLink&&fullProcess&&t._childIdx!=null&&childBlueprints[t._childIdx])h+=renderChildBpContainer(t,childBlueprints[t._childIdx]);
   });
   h+='</div></div>';
   return h;
