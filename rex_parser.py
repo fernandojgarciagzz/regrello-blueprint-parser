@@ -2002,6 +2002,78 @@ class RexParserV4:
 
         return "[\n" + ",\n".join(edge_strs) + "\n]"
 
+    def _build_cross_bp_edges_js(self, blueprints: List['BlueprintInfo'], child_map: dict) -> str:
+        """Build cross-blueprint data flow edges (child produces → parent consumes).
+
+        For each field consumed in the parent that's produced in a child,
+        pick the LAST producer task in that child (the final output point).
+        """
+        if not child_map or len(blueprints) < 2:
+            return "[]"
+
+        parent = blueprints[0]
+
+        # Build per-blueprint field producers:
+        # field_id -> {bp_index: (js_task_id, field_name, type, stage_order, task_idx)}
+        # We keep the latest task per blueprint (highest stage order + task idx)
+        field_last_producer: Dict[int, Dict[int, Tuple[str, str, str]]] = defaultdict(dict)
+
+        # Parent producers (bp_index=0)
+        for stage in parent.stages:
+            for tidx, task in enumerate(stage.tasks, 1):
+                js_id = self._build_task_id(stage, tidx, '')
+                order = (stage.execution_order, tidx)
+                for field in task.requested_fields:
+                    fid = field.get('id')
+                    if not fid:
+                        continue
+                    existing = field_last_producer[fid].get(0)
+                    if not existing or order > existing[3:]:
+                        field_last_producer[fid][0] = (js_id, field['name'], field.get('property_type', ''), stage.execution_order, tidx)
+
+        # Child producers
+        for ci, (bp_id, child_bp) in enumerate(child_map.items()):
+            prefix = f"C{ci+1}."
+            bp_idx = ci + 1
+            for stage in child_bp.stages:
+                for tidx, task in enumerate(stage.tasks, 1):
+                    js_id = self._build_task_id(stage, tidx, prefix)
+                    order = (stage.execution_order, tidx)
+                    for field in task.requested_fields:
+                        fid = field.get('id')
+                        if not fid:
+                            continue
+                        existing = field_last_producer[fid].get(bp_idx)
+                        if not existing or order > existing[3:]:
+                            field_last_producer[fid][bp_idx] = (js_id, field['name'], field.get('property_type', ''), stage.execution_order, tidx)
+
+        # Now find parent consumers whose field was produced in a child
+        # For each (field, consumer) pick one edge per child blueprint that produces it
+        edge_strs = []
+        seen = set()
+
+        for stage in parent.stages:
+            for tidx, task in enumerate(stage.tasks, 1):
+                consumer_js_id = self._build_task_id(stage, tidx, '')
+                for field in task.shared_fields:
+                    fid = field.get('id')
+                    if not fid:
+                        continue
+                    producers_by_bp = field_last_producer.get(fid, {})
+                    for bp_idx, prod_info in producers_by_bp.items():
+                        if bp_idx == 0:
+                            continue  # same blueprint — handled by intra-bp edges
+                        prod_js_id = prod_info[0]
+                        key = (prod_js_id, consumer_js_id, fid)
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        data = self._js_str(field['name'])
+                        dtype = self._js_str(field.get('property_type', ''))
+                        edge_strs.append(f'  {{from:"{prod_js_id}",to:"{consumer_js_id}",data:"{data}",type:"{dtype}"}}')
+
+        return "[\n" + ",\n".join(edge_strs) + "\n]" if edge_strs else "[]"
+
     def _build_prompts_js(self, blueprints: List['BlueprintInfo']) -> str:
         """Generate JS taskPrompts object."""
         entries = []
@@ -2224,13 +2296,15 @@ class RexParserV4:
                             if gc_idx not in grandchild_idxs:
                                 grandchild_idxs.append(gc_idx)
                 gc_js = "[" + ",".join(str(i) for i in grandchild_idxs) + "]"
+                c_edges_js = self._build_edges_js(child_bp, prefix=prefix)
                 child_blueprints_entries.append(
-                    f'{{id:{bp_id},name:"{c_name}",stages:{c_stages_js},flow:{c_flow_js},childIdxs:{gc_js}}}'
+                    f'{{id:{bp_id},name:"{c_name}",stages:{c_stages_js},flow:{c_flow_js},childIdxs:{gc_js},edges:{c_edges_js}}}'
                 )
         child_blueprints_js = "[" + ",\n".join(child_blueprints_entries) + "]" if child_blueprints_entries else "[]"
 
         # Edges
         edges_js = self._build_edges_js(parent)
+        cross_edges_js = self._build_cross_bp_edges_js(blueprints, child_map)
 
         # Prompts
         prompts_js = self._build_prompts_js(blueprints)
@@ -2247,7 +2321,8 @@ class RexParserV4:
             f"// Derived flat arrays (recursive — includes grandchildren at all depths)\n"
             f"var childStages=[],childFlow=[];\n"
             f"(function flattenCb(list){{list.forEach(function(cb){{cb.stages.forEach(function(s){{childStages.push(s)}});cb.flow.forEach(function(f){{childFlow.push(f)}});var gc=(cb.childIdxs||[]).map(function(i){{return childBlueprints[i]}}).filter(Boolean);if(gc.length)flattenCb(gc)}})}})(childBlueprints);\n\n"
-            f"const parentEdges = {edges_js};\n\n"
+            f"const parentEdges = {edges_js};\n"
+            f"const crossBpEdges = {cross_edges_js};\n\n"
             f"// ==============================================================\n"
             f"// TASK PROMPTS & DOCUMENT READER CONFIG\n"
             f"// ==============================================================\n"

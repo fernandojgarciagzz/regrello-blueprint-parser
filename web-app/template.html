@@ -245,20 +245,31 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 
 /* VISUAL GRAPH TAB */
 #tp-vgraph{overflow:auto}
-#vgraph-svg{width:100%;min-height:600px;background:var(--bg);cursor:grab;border:1px solid var(--border);border-radius:var(--radius-md)}
-#vgraph-svg:active{cursor:grabbing}
+.vg-container{display:flex;gap:12px}
+.vg-container svg{flex:1;min-width:0;min-height:600px;background:var(--bg);cursor:grab;border:1px solid var(--border);border-radius:var(--radius-md)}
+.vg-container svg:active{cursor:grabbing}
 #vgraph-svg .node rect{transition:opacity .2s}
 #vgraph-svg .node{cursor:pointer}
 #vgraph-svg .edgePath path{fill:none;stroke:var(--border);stroke-width:1}
+#vgraph-svg .edgeLabel{font-size:10px;opacity:.9}
+#vgraph-svg .edgeLabel .label{background:var(--surface);padding:1px 5px;border-radius:3px;border:1px solid var(--border)}
 #vgraph-svg .cluster rect{rx:8}
+.vg-field-panel{width:240px;flex-shrink:0;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;max-height:calc(100vh - 280px)}
+.vg-field-panel-hd{font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.vg-field-panel-sub{font-size:10px;color:var(--text-dim);margin-bottom:8px;font-style:italic}
+.vg-field-row{display:flex;align-items:baseline;gap:6px;padding:4px 4px;border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer;border-radius:3px}
+.vg-field-row:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.vg-field-row.active{background:color-mix(in srgb,var(--accent) 20%,transparent);outline:1px solid var(--accent)}
+.vg-field-num{min-width:22px;text-align:right;font-weight:700;color:var(--accent);font-size:11px}
+.vg-field-name{font-size:11px;color:var(--text);line-height:1.35}
 .vg-legend{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--text);flex-wrap:wrap;padding:6px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)}
 .vg-legend-item{display:flex;align-items:center;gap:5px;white-space:nowrap}
 .vg-legend-line{width:28px;height:0;border-top:2.5px solid var(--accent)}
-.vg-legend-line.task{border-color:var(--text-dim);border-width:1.5px}
-.vg-legend-line.data{border-color:var(--green);border-width:1.5px}
+.vg-legend-line.task{border-color:var(--text-dim);border-width:1.5px;border-style:dashed}
+.vg-legend-line.data{border-color:#10b981;border-width:2px}
 .vg-legend-line.child{border-style:dashed;border-color:var(--agent-pill-text);border-width:2px}
 .vg-df-toggle{font-size:12px;padding:4px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text-dim);cursor:pointer;transition:all .15s}
-.vg-df-toggle.active{background:var(--green);color:#fff;border-color:var(--green)}
+.vg-df-toggle.active{background:#10b981;color:#fff;border-color:#10b981}
 
 /* SIDE PANEL */
 #side-panel{position:fixed;top:0;right:0;width:380px;height:100vh;background:var(--surface);border-left:none;z-index:100;transform:translateX(100%);transition:transform .3s ease;overflow-y:auto;box-shadow:var(--shadow-4)}
@@ -2379,7 +2390,7 @@ function ptFilter(){
 // ==============================================================
 // VISUAL GRAPH (Task-level Dagre-D3)
 // ==============================================================
-var vgZoom,vgGraph,vgAdj,vgDataFlowOn=false;
+var vgZoom,vgGraph,vgAdj,vgDataFlowOn=false,vgActiveField=null;
 function toggleVGDataFlow(){
   vgDataFlowOn=document.getElementById('vg-df-toggle').checked;
   var dfLeg=document.getElementById('vg-leg-data');
@@ -2389,6 +2400,42 @@ function toggleVGDataFlow(){
 }
 function renderVisualGraph(){
   var el=document.getElementById('tp-vgraph');
+
+  // Build field index when data flow is on
+  var vgFieldIndex={},vgFieldList=[],vgEdgeNums={},fidx=1;
+  if(vgDataFlowOn){
+    var allEdges=parentEdges.slice();
+    if(fullProcess&&childBlueprints.length){
+      childBlueprints.forEach(function(cb){if(cb.edges)cb.edges.forEach(function(e){allEdges.push(e)})});
+      if(typeof crossBpEdges!=='undefined')crossBpEdges.forEach(function(e){allEdges.push(e)});
+    }
+    allEdges.forEach(function(e){
+      if(!vgFieldIndex.hasOwnProperty(e.data)){
+        vgFieldIndex[e.data]=fidx++;
+        vgFieldList.push({num:vgFieldIndex[e.data],name:e.data,type:e.type||''});
+      }
+    });
+    allEdges.forEach(function(e){
+      var k=e.from+'->'+e.to;
+      if(!vgEdgeNums[k])vgEdgeNums[k]=[];
+      if(vgEdgeNums[k].indexOf(vgFieldIndex[e.data])<0)vgEdgeNums[k].push(vgFieldIndex[e.data]);
+    });
+  }
+
+  // Field legend HTML
+  var legendPanel='';
+  if(vgDataFlowOn&&vgFieldList.length){
+    var rows=vgFieldList.map(function(f){
+      return '<div class="vg-field-row" data-fnum="'+f.num+'" title="'+f.name+'">'
+        +'<span class="vg-field-num">'+f.num+'</span>'
+        +'<span class="vg-field-name">'+f.name+'</span></div>';
+    }).join('');
+    legendPanel='<div class="vg-field-panel">'
+      +'<div class="vg-field-panel-hd">Field Legend</div>'
+      +'<div class="vg-field-panel-sub">Hover to highlight • Click to isolate</div>'
+      +rows+'</div>';
+  }
+
   el.innerHTML='<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">'
     +'<button class="fbtn" onclick="fitVG()">Fit to Screen</button>'
     +'<button class="fbtn" onclick="resetVG()">Reset Zoom</button>'
@@ -2399,7 +2446,10 @@ function renderVisualGraph(){
     +'<span class="vg-legend-item"><span class="vg-legend-line child"></span>Child blueprint</span>'
     +'<span id="vg-leg-data" class="vg-legend-item" style="display:'+(vgDataFlowOn?'':'none')+'"><span class="vg-legend-line data"></span>Data flow</span>'
     +'</div></div>'
-    +'<svg id="vgraph-svg"><defs></defs><g id="vg-g"></g></svg>';
+    +'<div class="vg-container">'
+    +'<svg id="vgraph-svg"><defs></defs><g id="vg-g"></g></svg>'
+    +legendPanel
+    +'</div>';
 
   var g=new dagreD3.graphlib.Graph({compound:true}).setGraph({rankdir:'TB',ranksep:60,nodesep:25,marginx:30,marginy:30}).setDefaultEdgeLabel(function(){return{}});
   var render=new dagreD3.render();
@@ -2412,11 +2462,18 @@ function renderVisualGraph(){
       labelStyle:'fill:var(--text-dim);font-size:12px'});
   });
   if(fullProcess&&childBlueprints.length){
-    childStages.forEach(function(s){
-      if(!s.tasks.length)return;
-      g.setNode('cl_'+s.id,{label:s.id+': '+s.name,clusterLabelPos:'top',
-        style:'fill:color-mix(in srgb,var(--agent-pill-text) 6%,transparent);stroke:var(--agent-pill-text);stroke-dasharray:4;rx:8',
-        labelStyle:'fill:var(--agent-pill-text);font-size:12px'});
+    childBlueprints.forEach(function(cb,ci){
+      if(!cb.stages.length)return;
+      g.setNode('bp_'+ci,{label:cb.name,clusterLabelPos:'top',
+        style:'fill:color-mix(in srgb,var(--agent-pill-text) 4%,transparent);stroke:var(--agent-pill-text);stroke-dasharray:5 3;rx:10',
+        labelStyle:'fill:var(--agent-pill-text);font-size:11px;font-weight:600'});
+      cb.stages.forEach(function(s){
+        if(!s.tasks.length)return;
+        g.setNode('cl_'+s.id,{label:s.id+': '+s.name,clusterLabelPos:'top',
+          style:'fill:color-mix(in srgb,var(--surface2) 50%,transparent);stroke:var(--border);rx:8',
+          labelStyle:'fill:var(--text-dim);font-size:12px'});
+        g.setParent('cl_'+s.id,'bp_'+ci);
+      });
     });
   }
 
@@ -2451,7 +2508,7 @@ function renderVisualGraph(){
   // --- EDGES ---
   var done={};
   var dimColor=cssVar('--text-dim')||'#888';
-  var greenColor=cssVar('--green')||'#22c55e';
+  var accentColor=cssVar('--accent')||'#3b82f6';
   var childColor=cssVar('--agent-pill-text')||'#a855f7';
 
   // Lookups
@@ -2471,7 +2528,7 @@ function renderVisualGraph(){
         done[k]=true;
         g.setEdge('t_'+fromT.id,'t_'+toT.id,{
           style:'stroke:transparent;stroke-width:0',arrowheadStyle:'fill:transparent',curve:d3.curveBasis,
-          _edgeType:'layout',_fields:[]
+          _edgeType:'layout',_fields:[],_nums:[]
         });
       }
     });
@@ -2490,8 +2547,8 @@ function renderVisualGraph(){
         if(done[k])continue;
         done[k]=true;
         g.setEdge('t_'+from.id,'t_'+to.id,{
-          style:'stroke:'+dimColor+';stroke-width:1.5;opacity:.6',arrowheadStyle:'fill:'+dimColor,curve:d3.curveBasis,
-          _edgeType:'task-seq',_fields:[]
+          style:'stroke:'+dimColor+';stroke-width:1.5;stroke-dasharray:6 3;opacity:.6',arrowheadStyle:'fill:'+dimColor,curve:d3.curveBasis,
+          _edgeType:'task-seq',_fields:[],_nums:[]
         });
       }
     });
@@ -2511,7 +2568,7 @@ function renderVisualGraph(){
             done[k]=true;
             g.setEdge('t_'+t.id,'t_'+cb.stages[0].tasks[0].id,{
               style:'stroke:'+childColor+';stroke-width:2;stroke-dasharray:4 3;opacity:.7',arrowheadStyle:'fill:'+childColor,curve:d3.curveBasis,
-              _edgeType:'child',_fields:[]
+              _edgeType:'child',_fields:[],_nums:[]
             });
           }
         }
@@ -2521,16 +2578,14 @@ function renderVisualGraph(){
   }
   if(fullProcess&&childBlueprints.length) linkChildren(stages);
 
-  // 4) Data flow edges — only when toggled on
+  // 4) Data flow edges — stored for manual drawing AFTER dagre render
+  var vgDataEdges=[];
   if(vgDataFlowOn){
-    parentEdges.forEach(function(e){
-      var k=e.from+'->'+e.to;
-      if(done[k])return;done[k]=true;
-      var ae=aggTaskEdges[k];
-      g.setEdge('t_'+e.from,'t_'+e.to,{
-        style:'stroke:'+greenColor+';stroke-width:1.5;opacity:.7',arrowheadStyle:'fill:'+greenColor,curve:d3.curveBasis,
-        _edgeType:'data',_fields:ae?ae.fields:[]
-      });
+    Object.keys(vgEdgeNums).forEach(function(k){
+      var parts=k.split('->');
+      var nums=vgEdgeNums[k].slice().sort(function(a,b){return a-b});
+      var label=nums.length>6?nums.slice(0,5).join(', ')+' …(+'+(nums.length-5)+')':nums.join(', ');
+      vgDataEdges.push({from:parts[0],to:parts[1],nums:nums,label:label});
     });
   }
 
@@ -2538,10 +2593,10 @@ function renderVisualGraph(){
   var svg=d3.select('#vgraph-svg');
   var inner=svg.select('#vg-g');
   inner.selectAll('*').remove();
-  render(inner,g);
+  try{render(inner,g)}catch(err){console.error('dagre render error:',err);inner.append('text').attr('x',20).attr('y',40).text('Render error: '+err.message);return}
   vgGraph=g;
 
-  // 4) Stage-to-stage sequence arrows — drawn manually between cluster boxes
+  // 5) Stage-to-stage sequence arrows — drawn manually between cluster boxes
   var seqColor=cssVar('--accent')||'#3b82f6';
   var seqGroup=inner.append('g').attr('class','vg-seq-edges');
   var defs=svg.select('defs');
@@ -2597,10 +2652,61 @@ function renderVisualGraph(){
   var gw=g.graph().width||800;
   var gh=g.graph().height||600;
   var svgEl=document.getElementById('vgraph-svg');
-  svgEl.style.width=Math.max(gw+80,svgEl.parentElement.clientWidth)+'px';
   svgEl.style.height=(gh+80)+'px';
 
-  // Build vgAdj from dagre edges for highlight
+  // 6) Data flow edges — drawn manually after dagre render to avoid compound graph crash
+  var dfGroup=inner.append('g').attr('class','vg-df-edges');
+  var defs2=svg.select('defs');
+  defs2.select('#vg-arr-df').remove();
+  defs2.append('marker').attr('id','vg-arr-df').attr('viewBox','0 0 10 10')
+    .attr('refX',10).attr('refY',5).attr('markerWidth',6).attr('markerHeight',6)
+    .attr('orient','auto-start-reverse')
+    .append('path').attr('d','M0,0 L10,5 L0,10 z').attr('fill','#10b981');
+  if(vgDataEdges.length){
+    // Read node positions from dagre
+    var nodePos={};
+    g.nodes().forEach(function(nid){
+      var nd=g.node(nid);
+      if(nd&&nd.x!=null)nodePos[nid]={x:nd.x,y:nd.y,w:nd.width||180,h:nd.height||38};
+    });
+    vgDataEdges.forEach(function(de){
+      var src=nodePos['t_'+de.from],tgt=nodePos['t_'+de.to];
+      if(!src||!tgt)return;
+      var x1=src.x,y1=src.y+src.h/2;
+      var x2=tgt.x,y2=tgt.y-tgt.h/2;
+      var dx=x2-x1,dy=y2-y1;
+      var path;
+      if(Math.abs(dx)<10){
+        path='M'+x1+','+y1+' L'+x2+','+y2;
+      }else{
+        var cp1y=y1+dy*0.3,cp2y=y1+dy*0.7;
+        path='M'+x1+','+y1+' C'+x1+','+cp1y+' '+x2+','+cp2y+' '+x2+','+y2;
+      }
+      dfGroup.append('path')
+        .attr('d',path)
+        .attr('fill','none')
+        .attr('stroke','#10b981')
+        .attr('stroke-width',2)
+        .attr('opacity',.8)
+        .attr('marker-end','url(#vg-arr-df)')
+        .attr('class','vg-df-path')
+        .datum({from:de.from,to:de.to,nums:de.nums,label:de.label,
+          _fields:de.nums.map(function(n){var f=vgFieldList[n-1];return f?f.name:''})});
+      // Label
+      var lx=(x1+x2)/2,ly=(y1+y2)/2;
+      dfGroup.append('text')
+        .attr('x',lx).attr('y',ly-5)
+        .attr('text-anchor','middle')
+        .attr('font-size','10px')
+        .attr('font-weight','700')
+        .attr('fill','#10b981')
+        .attr('class','vg-df-label')
+        .datum({from:de.from,to:de.to,nums:de.nums})
+        .text(de.label);
+    });
+  }
+
+  // Build vgAdj from dagre edges + data flow edges for highlight
   vgAdj={};
   g.edges().forEach(function(e){
     var src=(e.v||'').replace('t_',''),tgt=(e.w||'').replace('t_','');
@@ -2609,27 +2715,50 @@ function renderVisualGraph(){
     vgAdj[src].dn.add(tgt);
     vgAdj[tgt].up.add(src);
   });
+  vgDataEdges.forEach(function(de){
+    if(!vgAdj[de.from])vgAdj[de.from]={up:new Set,dn:new Set};
+    if(!vgAdj[de.to])vgAdj[de.to]={up:new Set,dn:new Set};
+    vgAdj[de.from].dn.add(de.to);
+    vgAdj[de.to].up.add(de.from);
+  });
 
   vgZoom=d3.zoom().scaleExtent([.1,3]).on('zoom',function(){inner.attr('transform',d3.event.transform)});
   svg.call(vgZoom);
 
-  // Click handler
+  // Click handler on nodes
   inner.selectAll('.node').on('click',function(id){
     var nd=g.node(id);if(!nd||!nd._tid)return;
+    vgClearFieldHighlight();
     highlightVGNode(nd._tid,inner,g);
     var t=taskMap[nd._tid];if(t)openTaskSP(t);
   });
 
-  // Tooltip on dagre edges
+  // Tooltip on dagre edges (structural only now)
   var tip=d3.select('#tooltip');
   inner.selectAll('.edgePath').on('mouseover',function(e){
     var ed=g.edge(e);if(!ed)return;
-    var label='';
-    if(ed._edgeType==='data'&&ed._fields&&ed._fields.length) label=ed._fields.join('<br>');
-    else if(ed._edgeType==='child') label='Child blueprint';
-    if(!label)return;
-    tip.html(label).style('left',(d3.event.pageX+12)+'px').style('top',(d3.event.pageY-10)+'px').style('opacity',1);
+    if(ed._edgeType==='child'){
+      tip.html('Child blueprint').style('left',(d3.event.pageX+12)+'px').style('top',(d3.event.pageY-10)+'px').style('opacity',1);
+    }
   }).on('mousemove',function(){tip.style('left',(d3.event.pageX+12)+'px').style('top',(d3.event.pageY-10)+'px')}).on('mouseout',function(){tip.style('opacity',0)});
+
+  // Tooltip on data flow edges (manual SVG paths)
+  dfGroup.selectAll('.vg-df-path').on('mouseover',function(){
+    var d=d3.select(this).datum();if(!d)return;
+    var fields=d._fields||[];
+    tip.html(fields.join('<br>')).style('left',(d3.event.pageX+12)+'px').style('top',(d3.event.pageY-10)+'px').style('opacity',1);
+    if(d.nums&&d.nums.length){
+      var ns={};d.nums.forEach(function(n){ns[n]=true});
+      document.querySelectorAll('#tp-vgraph .vg-field-row').forEach(function(r){
+        if(ns[r.dataset.fnum])r.style.background='color-mix(in srgb,var(--accent) 15%,transparent)';
+      });
+    }
+  }).on('mousemove',function(){tip.style('left',(d3.event.pageX+12)+'px').style('top',(d3.event.pageY-10)+'px')}).on('mouseout',function(){
+    tip.style('opacity',0);
+    if(vgActiveField===null){
+      document.querySelectorAll('#tp-vgraph .vg-field-row').forEach(function(r){r.style.background=''});
+    }
+  });
 
   // Tooltip on stage seq arrows
   seqGroup.selectAll('.vg-seq-path').on('mouseover',function(){
@@ -2637,7 +2766,91 @@ function renderVisualGraph(){
     tip.html('Stage sequence: '+d.from+' → '+d.to).style('left',(d3.event.pageX+12)+'px').style('top',(d3.event.pageY-10)+'px').style('opacity',1);
   }).on('mousemove',function(){tip.style('left',(d3.event.pageX+12)+'px').style('top',(d3.event.pageY-10)+'px')}).on('mouseout',function(){tip.style('opacity',0)});
 
+  // Field legend interactions
+  if(vgDataFlowOn){
+    document.querySelectorAll('#tp-vgraph .vg-field-row').forEach(function(row){
+      var fnum=+row.dataset.fnum;
+      row.addEventListener('mouseenter',function(){
+        if(vgActiveField!==null)return;
+        row.style.background='color-mix(in srgb,var(--accent) 12%,transparent)';
+        inner.selectAll('.vg-df-path').style('opacity',function(){
+          var d=d3.select(this).datum();return(d&&d.nums&&d.nums.indexOf(fnum)>=0)?1:.1;
+        }).style('stroke-width',function(){
+          var d=d3.select(this).datum();return(d&&d.nums&&d.nums.indexOf(fnum)>=0)?'3.5px':null;
+        });
+        inner.selectAll('.vg-df-label').style('opacity',function(){
+          var d=d3.select(this).datum();return(d&&d.nums&&d.nums.indexOf(fnum)>=0)?1:.1;
+        });
+      });
+      row.addEventListener('mouseleave',function(){
+        if(vgActiveField!==null)return;
+        row.style.background='';
+        inner.selectAll('.vg-df-path').style('opacity',null).style('stroke-width',null);
+        inner.selectAll('.vg-df-label').style('opacity',null);
+      });
+      row.addEventListener('click',function(){
+        if(vgActiveField===fnum){
+          vgClearFieldHighlight();
+        }else{
+          vgActiveField=fnum;
+          vgHighlightField(fnum,inner,g);
+          document.querySelectorAll('#tp-vgraph .vg-field-row').forEach(function(r){
+            var match=+r.dataset.fnum===fnum;
+            r.classList.toggle('active',match);
+            r.style.opacity=match?'1':'.35';
+          });
+        }
+      });
+    });
+    // Click SVG background to clear
+    svg.on('click.fieldclear',function(){
+      if(d3.event.target.tagName==='svg')vgClearFieldHighlight();
+    });
+  }
+
   setTimeout(fitVG,100);
+}
+
+function vgHighlightField(fnum,inner,g){
+  var matchNodes=new Set;
+  // Find matching data flow edges and collect connected nodes
+  inner.selectAll('.vg-df-path').each(function(){
+    var d=d3.select(this).datum();
+    if(d&&d.nums&&d.nums.indexOf(fnum)>=0){
+      matchNodes.add('t_'+d.from);matchNodes.add('t_'+d.to);
+    }
+  });
+  inner.selectAll('.node').each(function(id){
+    d3.select(this).style('opacity',matchNodes.has(id)?1:.2);
+  });
+  // Dim structural edges
+  inner.selectAll('.edgePath path').style('opacity',.08);
+  inner.selectAll('.edgeLabel').style('opacity',.08);
+  inner.selectAll('.vg-seq-path').style('opacity',.1);
+  // Highlight/dim data flow edges
+  inner.selectAll('.vg-df-path').style('opacity',function(){
+    var d=d3.select(this).datum();return(d&&d.nums&&d.nums.indexOf(fnum)>=0)?1:.08;
+  }).style('stroke-width',function(){
+    var d=d3.select(this).datum();return(d&&d.nums&&d.nums.indexOf(fnum)>=0)?'3.5px':null;
+  });
+  inner.selectAll('.vg-df-label').style('opacity',function(){
+    var d=d3.select(this).datum();return(d&&d.nums&&d.nums.indexOf(fnum)>=0)?1:.08;
+  });
+}
+
+function vgClearFieldHighlight(){
+  vgActiveField=null;
+  var inner=d3.select('#vg-g');
+  inner.selectAll('.node').style('opacity',1);
+  inner.selectAll('.node rect').style('stroke-width',null);
+  inner.selectAll('.edgePath path').style('opacity',null).style('stroke-width',null);
+  inner.selectAll('.edgeLabel').style('opacity',null);
+  inner.selectAll('.vg-seq-path').style('opacity',.7);
+  inner.selectAll('.vg-df-path').style('opacity',null).style('stroke-width',null);
+  inner.selectAll('.vg-df-label').style('opacity',null);
+  document.querySelectorAll('#tp-vgraph .vg-field-row').forEach(function(r){
+    r.classList.remove('active');r.style.background='';r.style.opacity='';
+  });
 }
 
 function highlightVGNode(tid,inner,g){
@@ -2657,6 +2870,10 @@ function highlightVGNode(tid,inner,g){
     var related=(src===tid||tgt===tid);
     d3.select(this).style('opacity',related?1:.1);
   });
+  inner.selectAll('.edgeLabel').each(function(e){
+    var src=(e.v||'').replace('t_',''),tgt=(e.w||'').replace('t_','');
+    d3.select(this).style('opacity',(src===tid||tgt===tid)?1:.1);
+  });
   inner.selectAll('.vg-seq-path').style('opacity',.1);
 }
 
@@ -2664,8 +2881,8 @@ function fitVG(){
   if(!vgGraph)return;
   var svg=d3.select('#vgraph-svg');
   var gw=vgGraph.graph().width||800,gh=vgGraph.graph().height||600;
-  var sw=svg.node().parentElement.clientWidth||800;
-  var sh=window.innerHeight-280;
+  var sw=svg.node().getBoundingClientRect().width||800;
+  var sh=svg.node().getBoundingClientRect().height||600;
   var sc=Math.min(sw/(gw+60),sh/(gh+60))*.9;
   if(sc>1)sc=1;
   svg.transition().duration(400).call(vgZoom.transform,d3.zoomIdentity.translate((sw-gw*sc)/2,15).scale(sc));
