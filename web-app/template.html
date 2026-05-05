@@ -203,8 +203,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .xbp-btn:hover{border-color:var(--accent);color:var(--accent)}
 
 /* FIELD REGISTRY TABLE */
-.ftable{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
-.ftable th{text-align:left;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;color:var(--text-dim);position:sticky;top:0;z-index:2;font-weight:600;white-space:nowrap}
+.ftable{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;table-layout:fixed}
+.ftable th{text-align:left;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;color:var(--text-dim);position:sticky;top:0;z-index:2;font-weight:600;white-space:nowrap;overflow:hidden;position:relative}
+.ftable th .pt-resize{position:absolute;right:0;top:0;bottom:0;width:5px;cursor:col-resize;background:transparent;transition:background .15s}
+.ftable th .pt-resize:hover,.ftable th .pt-resize.active{background:var(--accent);opacity:.5}
 .ftable th.sortable{cursor:pointer;user-select:none}.ftable th.sortable:hover{color:var(--text)}
 .ftable th .sort-arrow{font-size:10px;margin-left:3px;color:var(--text-placeholder)}.ftable th.sort-active .sort-arrow{color:var(--accent)}
 .fr-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:10px}
@@ -380,18 +382,20 @@ a.jump:hover{text-decoration:underline}
 .ms-actions button:hover{background:var(--primary-soft)}
 /* Prompt table (full view) */
 .pt-table-wrap{overflow:auto;max-height:calc(100vh - 200px)}
-.pt{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
-.pt thead th{position:sticky;top:0;z-index:5;background:var(--surface2);text-align:left;padding:8px 12px;color:var(--text-dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--border)}
+.pt{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;table-layout:fixed}
+.pt thead th{position:sticky;top:0;z-index:5;background:var(--surface2);text-align:left;padding:8px 12px;color:var(--text-dim);font-weight:600;font-size:12px;border-bottom:1px solid var(--border);overflow:hidden;position:relative}
+.pt thead th .pt-resize{position:absolute;right:0;top:0;bottom:0;width:5px;cursor:col-resize;background:transparent;transition:background .15s}
+.pt thead th .pt-resize:hover,.pt thead th .pt-resize.active{background:var(--accent);opacity:.5}
 .pt tbody td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
 .pt tbody tr:hover{background:var(--neutral-soft)}
 .pt tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pt-col-id{white-space:nowrap;font-weight:600;font-size:12px;color:var(--text-dim);width:54px}
 .pt-col-name{font-weight:400;color:var(--text);width:160px;font-size:12px}
-.pt-col-stage{color:var(--text-dim);font-size:12px;width:120px}
-.pt-col-agent{width:130px}
-.pt-col-fields{font-size:12px;width:120px;vertical-align:top}
+.pt-col-stage{color:var(--text-dim);font-size:12px;width:100px}
+.pt-col-agent{width:158px;white-space:nowrap}
+.pt-col-fields{font-size:11px;width:174px;vertical-align:top}
 .pt-field-item{display:flex;align-items:center;gap:4px;padding:1px 0;color:var(--text);line-height:1.4}
-.pt-field-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-field-item span{word-break:break-word}
 .pt-field-empty{color:var(--text-placeholder)}
 .pt-col-prompt{color:var(--text)}
 .pt-col-actions{width:32px;text-align:center}
@@ -1975,22 +1979,36 @@ function renderFieldReg(){
   var h='<input type="hidden" id="fieldSearch">';
 
   h+='<div class="table-wrap"><table class="ftable"><thead><tr>';
-  h+='<th class="sortable sort-active" data-col="name" onclick="frSort(\'name\')">Field Name <span class="sort-arrow">▼</span></th>';
-  h+='<th><div class="ms-wrap" style="display:inline"><button class="ms-btn ms-inline" id="ms-btn-ftype" onclick="event.stopPropagation();msToggle(\'ms-panel-ftype\')" style="border:none;background:none;padding:0;font-size:12px;font-weight:600;color:var(--text-dim)">Type <span class="sort-arrow">▾</span></button>';
+  h+='<th class="sortable sort-active" data-col="name" onclick="frSort(\'name\')" style="width:200px">Field Name <span class="sort-arrow">▼</span><span class="pt-resize"></span></th>';
+  h+='<th style="width:100px"><div class="ms-wrap" style="display:inline"><button class="ms-btn ms-inline" id="ms-btn-ftype" onclick="event.stopPropagation();msToggle(\'ms-panel-ftype\')" style="border:none;background:none;padding:0;font-size:12px;font-weight:600;color:var(--text-dim)">Type <span class="sort-arrow">▾</span></button>';
   h+='<div class="ms-panel ms-fixed" id="ms-panel-ftype">';
   h+='<div class="ms-actions"><button onclick="frTypeAll(true)">Select All</button><button onclick="frTypeAll(false)">Clear</button></div>';
   typeList.forEach(function(t){
     h+='<div class="ms-item"><input type="checkbox" id="ms-ft-'+t+'" onchange="frTypeToggle(\''+t+'\')"><label for="ms-ft-'+t+'"><span class="ftbadge '+(ftClsMap[t]||'ft-text')+'">'+t+'</span></label></div>';
   });
-  h+='</div></div></th>';
-  h+='<th>ID</th>';
-  h+='<th class="sortable" data-col="prod" onclick="frSort(\'prod\')">Produced By <span class="sort-arrow">▼</span></th>';
-  h+='<th class="sortable" data-col="cons" onclick="frSort(\'cons\')">Consumed By <span class="sort-arrow">▼</span></th>';
-  h+='<th class="sortable sort-active" data-col="usage" onclick="frSort(\'usage\')">Usage <span class="sort-arrow">▼</span></th>';
-  h+='<th>Heat</th>';
+  h+='</div></div><span class="pt-resize"></span></th>';
+  h+='<th style="width:60px">ID<span class="pt-resize"></span></th>';
+  h+='<th class="sortable" data-col="prod" onclick="frSort(\'prod\')">Produced By <span class="sort-arrow">▼</span><span class="pt-resize"></span></th>';
+  h+='<th class="sortable" data-col="cons" onclick="frSort(\'cons\')">Consumed By <span class="sort-arrow">▼</span><span class="pt-resize"></span></th>';
+  h+='<th class="sortable sort-active" data-col="usage" onclick="frSort(\'usage\')" style="width:70px">Usage <span class="sort-arrow">▼</span><span class="pt-resize"></span></th>';
+  h+='<th style="width:80px">Heat</th>';
   h+='</tr></thead><tbody id="fieldBody"></tbody></table></div>';
   document.getElementById('tp-fields').innerHTML=h;
   frRenderRows();
+
+  // Column resize drag
+  document.querySelectorAll('#tp-fields .pt-resize').forEach(function(handle){
+    handle.addEventListener('mousedown',function(e){
+      e.preventDefault();e.stopPropagation();
+      var th=handle.parentElement;
+      var startX=e.pageX,startW=th.offsetWidth;
+      handle.classList.add('active');
+      function onMove(ev){th.style.width=(startW+(ev.pageX-startX))+'px'}
+      function onUp(){handle.classList.remove('active');document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp)}
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+    });
+  });
 }
 
 function frSort(col){
@@ -2235,14 +2253,28 @@ function renderPrompts(){
 
   // Table
   h+='<div class="pt-table-wrap"><table class="pt"><thead><tr>';
-  h+='<th style="width:54px">Task</th><th style="width:160px">Name</th><th style="width:120px">Stage</th><th style="width:130px">Agent</th>';
-  h+='<th style="width:120px">Shared Fields</th><th style="width:120px">Requested Fields</th>';
+  h+='<th style="width:46px">Task<span class="pt-resize"></span></th><th style="width:130px">Name<span class="pt-resize"></span></th><th style="width:100px">Stage<span class="pt-resize"></span></th><th style="width:158px">Agent<span class="pt-resize"></span></th>';
+  h+='<th style="width:174px">Shared<span class="pt-resize"></span></th><th style="width:174px">Requested<span class="pt-resize"></span></th>';
   h+='<th>Prompt</th><th style="width:36px"></th>';
   h+='</tr></thead><tbody id="ptTbody">';
   h+='</tbody></table></div>';
 
   el.innerHTML=h;
   ptRenderTable();
+
+  // Column resize drag
+  el.querySelectorAll('.pt-resize').forEach(function(handle){
+    handle.addEventListener('mousedown',function(e){
+      e.preventDefault();
+      var th=handle.parentElement;
+      var startX=e.pageX,startW=th.offsetWidth;
+      handle.classList.add('active');
+      function onMove(ev){th.style.width=(startW+(ev.pageX-startX))+'px'}
+      function onUp(){handle.classList.remove('active');document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp)}
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+    });
+  });
 }
 
 function ptRenderTable(){
