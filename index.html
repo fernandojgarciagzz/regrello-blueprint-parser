@@ -13,7 +13,7 @@
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .upload-page{text-align:center;max-width:560px;width:100%;padding:40px 24px}
 .logo{margin-bottom:12px}
-.logo img{width:80px;height:80px;object-fit:contain}
+.logo img{max-width:100%;object-fit:contain}
 .upload-page h1{font-size:30px;font-weight:700;margin-bottom:8px}
 .upload-page .subtitle{color:var(--text-dim);font-size:14px;margin-bottom:32px;line-height:1.5}
 .upload-page .subtitle code{background:var(--accent-subtle);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:13px;font-weight:600}
@@ -64,9 +64,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple
 
 <div class="upload-page" id="upload-page">
   <div class="logo">
-    <img src="agentforce-logo.png" alt="Agentforce">
-    <div style="font-size:28px;font-weight:700;color:#0d1b3e;letter-spacing:-0.5px;margin-top:10px;font-family:'Inter',system-ui,sans-serif">Agentforce Operations</div>
-    <div style="font-size:28px;font-weight:700;color:#0d1b3e;letter-spacing:-0.5px;margin-top:4px;font-family:'Inter',system-ui,sans-serif">Blueprint Parser</div>
+    <img src="agentforce-ops-logo.svg" alt="Agentforce Operations" style="width:350px;margin-bottom:8px">
   </div>
   <p class="subtitle">Drop a <code>.rex</code> export to generate an interactive workflow dashboard</p>
 
@@ -433,6 +431,7 @@ function generateDataStructures(blueprints) {
   const childBps = blueprints.slice(1);
   const childMap = {};
   childBps.forEach(bp => { childMap[bp.id] = bp; });
+  const childBpIdsList = childBps.map(bp => String(bp.id));
 
   const { map: parentSourceMap, edges: parentEdges } = buildSourceMap(parent, '');
 
@@ -459,8 +458,7 @@ function generateDataStructures(blueprints) {
       const outputs = task.requested_fields.map(f => ({ n: f.name, t: f.property_type, id: f.id, req: f.input_type === 'REQUESTED' ? 1 : 0 }));
 
       const isChildLink = !!(task.linked_workflow_id && childMap[task.linked_workflow_id]);
-      const childBpIds = Object.keys(childMap);
-      const childIdx = isChildLink ? childBpIds.indexOf(String(task.linked_workflow_id)) : -1;
+      const childIdx = isChildLink ? childBpIdsList.indexOf(String(task.linked_workflow_id)) : -1;
 
       const htVal = task.ht || '';
       const descText = stripHtml(task.description);
@@ -492,7 +490,7 @@ function generateDataStructures(blueprints) {
   const childBpIds = childBps.map(bp => String(bp.id));
   childBps.forEach((childBp, ci) => {
     const prefix = 'C' + (ci + 1) + '.';
-    const { map: childSourceMap } = buildSourceMap(childBp, prefix);
+    const { map: childSourceMap, edges: childRawEdges } = buildSourceMap(childBp, prefix);
     const cStages = [];
     const grandchildIdxs = [];
     for (const stage of childBp.stages) {
@@ -534,7 +532,17 @@ function generateDataStructures(blueprints) {
       cStages.push({ id: prefix + stage.execution_order, name: stage.name, trigger, condition, tasks: tasksArr });
     }
     const cFlow = buildFlow(childBp).map(e => [prefix + e[0], prefix + e[1]]);
-    childBlueprintsArr.push({ id: childBp.id, name: childBp.name, stages: cStages, flow: cFlow, childIdxs: grandchildIdxs });
+    const childTaskLookup = {};
+    for (const stage of childBp.stages) {
+      for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+        childTaskLookup[stage.tasks[tidx].id] = prefix + stage.execution_order + '.' + (tidx + 1);
+      }
+    }
+    const cEdges = childRawEdges.filter(e => childTaskLookup[e.from_task_id] && childTaskLookup[e.to_task_id]).map(e => ({
+      from: childTaskLookup[e.from_task_id], to: childTaskLookup[e.to_task_id],
+      data: e.from_field_name, type: e.data_type
+    }));
+    childBlueprintsArr.push({ id: childBp.id, name: childBp.name, stages: cStages, flow: cFlow, edges: cEdges, childIdxs: grandchildIdxs });
   });
 
   // Edges
@@ -548,6 +556,46 @@ function generateDataStructures(blueprints) {
     from: taskLookup[e.from_task_id], to: taskLookup[e.to_task_id],
     data: e.from_field_name, type: e.data_type
   }));
+
+  // Cross-blueprint edges: field produced in one BP consumed in another
+  const crossBpEdges = [];
+  const globalFieldProducers = {};
+  function addProducers(bp, prefix) {
+    for (const stage of bp.stages) {
+      for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+        const task = stage.tasks[tidx];
+        const tid = prefix + stage.execution_order + '.' + (tidx + 1);
+        for (const f of task.requested_fields) {
+          if (!globalFieldProducers[f.id]) globalFieldProducers[f.id] = [];
+          globalFieldProducers[f.id].push({ tid, taskName: task.name, fieldName: f.name, fieldType: f.property_type });
+        }
+      }
+    }
+  }
+  addProducers(parent, '');
+  childBps.forEach((bp, ci) => addProducers(bp, 'C' + (ci + 1) + '.'));
+
+  function addCrossConsumers(bp, prefix) {
+    for (const stage of bp.stages) {
+      for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+        const task = stage.tasks[tidx];
+        const tid = prefix + stage.execution_order + '.' + (tidx + 1);
+        for (const f of task.shared_fields) {
+          const producers = globalFieldProducers[f.id] || [];
+          for (const prod of producers) {
+            if (prod.tid === tid) continue;
+            const prodBp = prod.tid.startsWith('C') ? prod.tid.split('.')[0] : 'P';
+            const consBp = tid.startsWith('C') ? tid.split('.')[0] : 'P';
+            if (prodBp !== consBp) {
+              crossBpEdges.push({ from: prod.tid, to: tid, data: f.name, type: f.property_type });
+            }
+          }
+        }
+      }
+    }
+  }
+  addCrossConsumers(parent, '');
+  childBps.forEach((bp, ci) => addCrossConsumers(bp, 'C' + (ci + 1) + '.'));
 
   // Prompts
   const prompts = {};
@@ -610,7 +658,164 @@ function generateDataStructures(blueprints) {
 
   const stageFlow = buildFlow(parent);
 
-  return { stages: stagesArr, childBlueprints: childBlueprintsArr, parentEdges: edgesArr, taskPrompts: prompts, docReaderConfig: docReader, stageFlow };
+  return { stages: stagesArr, childBlueprints: childBlueprintsArr, parentEdges: edgesArr, crossBpEdges: crossBpEdges, taskPrompts: prompts, docReaderConfig: docReader, stageFlow };
+}
+
+// ==============================================================
+// FORMS DATA EXTRACTOR
+// ==============================================================
+
+function extractFormsData(workflowTemplates) {
+  // Build global field map: field.id -> {name, type, isMultiValued, allowedValues}
+  // Overwrites with better data (prefer entries that have a real type over Unknown)
+  const fieldMap = {};
+  for (const wt of workflowTemplates) {
+    for (const stage of (wt.stageTemplates || [])) {
+      for (const task of (stage.actionItemTemplates || [])) {
+        for (const fi of (task.fieldInstances || [])) {
+          const field = fi.field || {};
+          if (!field.id) continue;
+          const pt = field.propertyType || {};
+          const newType = pt.name || 'Unknown';
+          const existing = fieldMap[field.id];
+          if (!existing || (existing.type === 'Unknown' && newType !== 'Unknown')) {
+            fieldMap[field.id] = {
+              name: field.name || 'Unknown',
+              type: newType,
+              isMultiValued: field.isMultiValued || false,
+              allowedValues: (field.allowedValues || []).map(v => typeof v === 'object' ? (v.displayStringValue || v.stringValue || JSON.stringify(v)) : String(v))
+            };
+          }
+        }
+      }
+    }
+  }
+
+  // Collect forms across all blueprints with task references
+  const formsByUuid = {};
+  let bpIdx = 0;
+  for (const wt of workflowTemplates) {
+    const prefix = bpIdx === 0 ? '' : 'C' + bpIdx + '.';
+    for (const stage of (wt.stageTemplates || [])) {
+      let tidx = 0;
+      for (const task of (stage.actionItemTemplates || [])) {
+        tidx++;
+        const form = task.exportFormStructure;
+        if (!form || !form.sections) { continue; }
+        const taskId = prefix + (stage.executionOrder || 1) + '.' + tidx;
+        const key = form.formVersionUuid || form.name || taskId;
+
+        if (!formsByUuid[key]) {
+          // Build task-local inputType map: field.id -> inputType for THIS task
+          const taskInputTypes = {};
+          for (const fi of (task.fieldInstances || [])) {
+            const fid = (fi.field || {}).id;
+            if (fid) taskInputTypes[fid] = fi.inputType || 'UNKNOWN';
+          }
+
+          // Build local formFieldId -> name map for constraint resolution
+          const ffMap = {};
+          for (const sec of form.sections) {
+            for (const f of (sec.fields || [])) { ffMap[f.id] = f.name; }
+            for (const col of (sec.columns || [])) {
+              for (const f of (col.fields || [])) { ffMap[f.id] = f.name; }
+            }
+          }
+
+          function humanizeConstraints(constraints) {
+            if (!constraints || !constraints.length) return [];
+            return constraints.map(c => {
+              const ruleMap = {show:'Show',hide:'Hide',mandatory:'Require'};
+              const rule = ruleMap[c.rule] || c.rule || 'Show';
+              const cond = c.condition || {};
+              const parts = (cond.constraints || []).map(cc => {
+                const fname = ffMap[cc.formFieldId] || 'Field #' + cc.formFieldId;
+                const opMap = {EQ:'equals',NEQ:'not equals',ARRAY_CONTAINS_ONE_OF:'contains any of',STRING_IS_ONE_OF:'is one of',ARRAY_CONTAINS_ALL_OF:'contains all of',IS_EMPTY:'is empty',IS_NOT_EMPTY:'is not empty',CHECKED:'is checked',NOT_CHECKED:'is not checked'};
+                const op = opMap[cc.operator] || cc.operator || '?';
+                const val = (cc.value || []).join('" or "');
+                if (op === 'is empty' || op === 'is not empty' || op === 'is checked' || op === 'is not checked') {
+                  return '"' + fname + '" ' + op;
+                }
+                return '"' + fname + '" ' + op + ' "' + val + '"';
+              });
+              const joiner = cond.operator === 'AND' ? ' AND ' : ' OR ';
+              return rule + ' when ' + parts.join(joiner);
+            });
+          }
+
+          let totalFields = 0;
+          let smartRuleCount = 0;
+          const sections = form.sections.map(sec => {
+            const secConstraints = humanizeConstraints(sec.constraints);
+            smartRuleCount += secConstraints.length;
+
+            // Merge fields from sec.fields[] and sec.columns[].fields[]
+            const allFields = [];
+            for (const f of (sec.fields || [])) allFields.push(f);
+            for (const col of (sec.columns || [])) {
+              for (const f of (col.fields || [])) allFields.push(f);
+            }
+
+            // Build items: fields + instructions, sorted by displayOrder
+            const items = [];
+            for (const f of allFields) {
+              const resolved = fieldMap[f.spectrumFieldId] || {};
+              const fConstraints = humanizeConstraints(f.constraints);
+              smartRuleCount += fConstraints.length;
+              items.push({
+                type: 'field',
+                name: f.name || resolved.name || 'Unknown',
+                fieldType: resolved.type || 'Unknown',
+                isRequired: f.isRequired || false,
+                allowedValues: resolved.allowedValues || [],
+                constraints: fConstraints,
+                inputType: taskInputTypes[f.spectrumFieldId] || 'UNKNOWN',
+                enableFieldPassing: f.enableFieldPassing || false,
+                displayOrder: f.displayOrder || 0,
+                col: f.displayColumn || 0
+              });
+            }
+            for (const instr of (sec.instructions || [])) {
+              const instrConstraints = humanizeConstraints(instr.constraints);
+              smartRuleCount += instrConstraints.length;
+              items.push({
+                type: 'instruction',
+                name: instr.name || '',
+                description: instr.description || '',
+                constraints: instrConstraints,
+                displayOrder: instr.displayOrder || 0
+              });
+            }
+            items.sort((a, b) => a.displayOrder - b.displayOrder);
+            totalFields += allFields.length;
+
+            return {
+              name: sec.name || 'Unnamed Section',
+              displayOrder: sec.displayOrder || 0,
+              constraints: secConstraints,
+              items: items
+            };
+          }).sort((a, b) => a.displayOrder - b.displayOrder);
+
+          formsByUuid[key] = {
+            name: form.name || 'Unnamed Form',
+            taskIds: [taskId],
+            taskNames: [task.name || 'Unknown'],
+            sectionCount: sections.length,
+            fieldCount: totalFields,
+            smartRuleCount: smartRuleCount,
+            sections: sections
+          };
+        } else {
+          formsByUuid[key].taskIds.push(taskId);
+          formsByUuid[key].taskNames.push(task.name || 'Unknown');
+        }
+      }
+    }
+    bpIdx++;
+  }
+
+  return Object.values(formsByUuid);
 }
 
 // ==============================================================
@@ -936,6 +1141,7 @@ let generatedHtml = null;
 let generatedTxt = null;
 let templateHtml = null;
 let logoB64 = null;
+let opsLogoB64 = null;
 
 async function loadTemplate() {
   const resp = await fetch('template.html?v=' + Date.now());
@@ -956,6 +1162,19 @@ async function loadLogo() {
   } catch(e) { return ''; }
 }
 
+async function loadOpsLogo() {
+  try {
+    const resp = await fetch('agentforce-ops-logo.svg');
+    if (!resp.ok) return '';
+    const blob = await resp.blob();
+    return await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  } catch(e) { return ''; }
+}
+
 function generateHtmlOutput(blueprints, data, template) {
   const parent = blueprints[0];
   const allChildStages = data.childBlueprints.reduce((acc, cb) => acc.concat(cb.stages), []);
@@ -965,15 +1184,11 @@ function generateHtmlOutput(blueprints, data, template) {
   [...data.stages, ...allChildStages].forEach(s => s.tasks.forEach(t => { if (t.agentClass !== 'human') agentNames.add(t.agent); }));
 
   const title = parent.name + ' - Data Flow Visualization';
-  const logoTag = logoB64 ? '  <img class="header-logo" src="' + logoB64 + '" alt="Logo" height="32">\n' : '';
+  const logoTag = logoB64 ? '  <img class="header-logo" src="' + logoB64 + '" alt="Salesforce" height="32">\n' : '';
   const themeSwitchSvg = '<div class="theme-switch" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark theme"><span class="ts-icon ts-sun"><svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5a1 1 0 011 1v1a1 1 0 01-2 0V3a1 1 0 011-1zm0 18a1 1 0 011 1v1a1 1 0 01-2 0v-1a1 1 0 011-1zm9-9a1 1 0 010 2h-1a1 1 0 010-2h1zM4 11a1 1 0 010 2H3a1 1 0 010-2h1zm14.36-5.64a1 1 0 010 1.41l-.7.71a1 1 0 01-1.42-1.42l.71-.7a1 1 0 011.41 0zM7.76 16.24a1 1 0 010 1.41l-.7.71a1 1 0 11-1.42-1.42l.71-.7a1 1 0 011.41 0zm10.48 0a1 1 0 011.42 1.42l-.71.7a1 1 0 01-1.41-1.41l.7-.71zM7.76 7.76a1 1 0 01-1.41 0l-.71-.7a1 1 0 011.42-1.42l.7.71a1 1 0 010 1.41z"/></svg></span><span class="ts-icon ts-moon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg></span></div>';
   const headerHtml = logoTag +
     '  <h1>' + parent.name.replace(/</g,'&lt;') + '</h1>\n' +
-    '  <div class="theme-switch-cell">' + themeSwitchSvg + '</div>\n' +
-    '  <div class="view-toggle">\n' +
-    '    <button class="view-btn" data-view="simple" onclick="switchView(\'simple\')">Simple View</button>\n' +
-    '    <button class="view-btn active" data-view="detailed" onclick="switchView(\'detailed\')">Detailed View</button>\n' +
-    '  </div>';
+    '  <div class="theme-switch-cell">' + themeSwitchSvg + '</div>';
 
   const graphNote = totalStages + ' stages | Click stage for details';
 
@@ -981,11 +1196,13 @@ function generateHtmlOutput(blueprints, data, template) {
   const dataSection = 'const stages = ' + JSON.stringify(data.stages) + ';\n\n' +
     'const childBlueprints = ' + JSON.stringify(data.childBlueprints) + ';\n\n' +
     'var childStages=[],childFlow=[];\n' +
-    '(function flattenCb(list){list.forEach(function(cb){cb.stages.forEach(function(s){childStages.push(s)});cb.flow.forEach(function(f){childFlow.push(f)});var gc=(cb.childIdxs||[]).map(function(i){return childBlueprints[i]}).filter(Boolean);if(gc.length)flattenCb(gc)})})(childBlueprints);\n\n' +
+    '(function(){var visited={};function flattenCb(list){list.forEach(function(cb){var idx=childBlueprints.indexOf(cb);if(visited[idx])return;visited[idx]=true;cb.stages.forEach(function(s){childStages.push(s)});cb.flow.forEach(function(f){childFlow.push(f)});var gc=(cb.childIdxs||[]).map(function(i){return childBlueprints[i]}).filter(Boolean);if(gc.length)flattenCb(gc)})};flattenCb(childBlueprints)})();\n\n' +
     'const parentEdges = ' + JSON.stringify(data.parentEdges) + ';\n\n' +
     '// TASK PROMPTS & DOCUMENT READER CONFIG\n' +
     'const taskPrompts=' + JSON.stringify(data.taskPrompts).replace(/</g,'\\u003c') + ';\n' +
-    'const docReaderConfig=' + JSON.stringify(data.docReaderConfig) + ';\n\n' +
+    'const docReaderConfig=' + JSON.stringify(data.docReaderConfig) + ';\n' +
+    'const formsData=' + JSON.stringify(data.formsData || []) + ';\n' +
+    'const crossBpEdges=' + JSON.stringify(data.crossBpEdges || []) + ';\n\n' +
     '// DERIVED DATA\n' +
     'const taskToStage={}, taskMap={}, adj={};\n' +
     'const stageEdgeMap={}, aggTaskEdges={}, intraStageEdges={};\n' +
@@ -1085,7 +1302,7 @@ async function processRexFile(file) {
   try {
     // Load template and logo
     if (!templateHtml) {
-      [templateHtml, logoB64] = await Promise.all([loadTemplate(), loadLogo()]);
+      [templateHtml, logoB64, opsLogoB64] = await Promise.all([loadTemplate(), loadLogo(), loadOpsLogo()]);
     }
 
     // Unzip
@@ -1102,8 +1319,12 @@ async function processRexFile(file) {
 
     const blueprints = workflowTemplates.map(parseBlueprintData);
 
+    // Extract forms data from raw workflow templates
+    const formsData = extractFormsData(workflowTemplates);
+
     // Generate data structures
     const data = generateDataStructures(blueprints);
+    data.formsData = formsData;
 
     // Generate outputs
     generatedHtml = generateHtmlOutput(blueprints, data, templateHtml);
