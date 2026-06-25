@@ -682,9 +682,11 @@ a.jump:hover{text-decoration:underline}
 .lane-edges .lv-edge-dim{opacity:.1!important}
 /* Field trace: the selected field's data-flow edges pop (thicker, solid green). */
 .lane-edges .lv-edge-fhi{stroke:var(--green);stroke-width:2.75;stroke-dasharray:none;opacity:1}
-/* Multi-field count badge on a data-flow arrow (a link carrying N>1 fields). */
-.lane-edges .lv-df-badge rect{fill:var(--green);stroke:var(--surface);stroke-width:1}
-.lane-edges .lv-df-badge text{fill:#fff;font-size:9px;font-weight:700;text-anchor:middle;font-family:'Inter',system-ui,sans-serif}
+/* Multi-field count badge on a data-flow arrow (a link carrying N>1 fields).
+   A true circle for single digits, a stadium/pill for 2+ digits. The number is
+   centered with text-anchor:middle + dominant-baseline:central (no manual y fudge). */
+.lane-edges .lv-df-badge circle,.lane-edges .lv-df-badge rect{fill:var(--green);stroke:var(--surface);stroke-width:1.5}
+.lane-edges .lv-df-badge text{fill:#fff;font-size:9.5px;font-weight:700;text-anchor:middle;dominant-baseline:central;font-family:'Inter',system-ui,sans-serif;pointer-events:none}
 
 /* ── Field legend (Data Flow ON) — floats over the scroll area ───────────── */
 /* Pinned to #tp-lane (the non-scrolling tab panel), not .lv-scroll, so it stays put
@@ -3290,7 +3292,10 @@ function renderFormField(item,eyeSvg){
 // ==============================================================
 // LANE VIEW (swim-lane: lanes = assignees, stages = the other axis)
 // ==============================================================
-var lvOrientation=(function(){try{return localStorage.getItem('lv_orient')||'h'}catch(e){return'h'}})();
+// Swimlanes always OPENS horizontal (the requested default). Orientation is no longer
+// read from localStorage so a previously-chosen vertical can't get stuck across loads;
+// the Horizontal/Vertical toggle still switches it for the current session.
+var lvOrientation='h';
 var lvShowDataFlow=false,lvTraceField=null,lvActiveTaskId=null;
 // Full Process is the single switch for linked workflows: OFF shows each child as
 // one invocation card in the "Linked Workflows" lane; ON hides those cards and
@@ -3299,7 +3304,7 @@ var lvShowDataFlow=false,lvTraceField=null,lvActiveTaskId=null;
 // invalidate the sequence-edge cache — contraction depends on fullProcess.
 function lvOnFullProcessChange(){lvSeqEdgesCache=null;lvSeqAdjCache=null;renderLaneView(true)}
 
-function lvSetOrient(o){lvOrientation=o;try{localStorage.setItem('lv_orient',o)}catch(e){}renderLaneView(true)}
+function lvSetOrient(o){lvOrientation=o;renderLaneView(true)}
 function lvToggleDataFlow(){
   lvShowDataFlow=!lvShowDataFlow;
   var b=document.getElementById('lv-df-toggle');if(b)b.checked=lvShowDataFlow;
@@ -4471,13 +4476,25 @@ function lvDrawEdges(){
     var dim=lvTraceField&&l.fields.indexOf(lvTraceField)===-1;
     var g=document.createElementNS(ns,'g');
     g.setAttribute('class','lv-df-badge'+(dim?' lv-edge-dim':''));
-    var r=document.createElementNS(ns,'rect');
-    var w=l.n>=10?16:12;
-    r.setAttribute('x',l.x-w/2);r.setAttribute('y',l.y-7);r.setAttribute('width',w);r.setAttribute('height',14);
-    r.setAttribute('rx',7);
-    g.appendChild(r);
+    // Single digit → a true circle (R=8). 2+ digits → a horizontal stadium/pill that
+    // grows in width only, so the badge never looks like a squashed egg.
+    var R=8;
+    if(l.n>=10){
+      var halfW=4+String(l.n).length*3; // pill half-width grows with digit count
+      var rr=document.createElementNS(ns,'rect');
+      rr.setAttribute('x',l.x-halfW);rr.setAttribute('y',l.y-R);
+      rr.setAttribute('width',halfW*2);rr.setAttribute('height',R*2);
+      rr.setAttribute('rx',R);rr.setAttribute('ry',R);
+      g.appendChild(rr);
+    }else{
+      var c=document.createElementNS(ns,'circle');
+      c.setAttribute('cx',l.x);c.setAttribute('cy',l.y);c.setAttribute('r',R);
+      g.appendChild(c);
+    }
     var txt=document.createElementNS(ns,'text');
-    txt.setAttribute('x',l.x);txt.setAttribute('y',l.y+1);txt.textContent=l.n;
+    // Centered both ways: text-anchor:middle (x) + dominant-baseline:central (y),
+    // placed exactly at the badge's geometric center — no manual baseline offset.
+    txt.setAttribute('x',l.x);txt.setAttribute('y',l.y);txt.textContent=l.n;
     g.appendChild(txt);
     var ttl=document.createElementNS(ns,'title');ttl.textContent=l.n+' fields: '+l.fields.join(', ');
     g.appendChild(ttl);
