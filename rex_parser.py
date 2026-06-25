@@ -130,6 +130,7 @@ class StageCondition:
     operator: str
     compare_value: Any
     value_type: str
+    all_values: List[Any] = field(default_factory=list)
 
 
 @dataclass
@@ -569,29 +570,42 @@ class RexParserV4:
                     return val_dict['dateValue'], 'date'
                 return None, 'unknown'
 
+            # Collect all comparison values (operators like CONTAINS_ANY_OF can have many)
+            all_values = []
             # Handle right as array (new format)
             if isinstance(right, list) and right:
-                right_item = right[0]
-                if isinstance(right_item, dict):
-                    values = right_item.get('values', [])
-                    if values and isinstance(values, list):
-                        compare_value, value_type = _extract_value(values[0])
+                for right_item in right:
+                    if isinstance(right_item, dict):
+                        values = right_item.get('values', [])
+                        if values and isinstance(values, list):
+                            for v in values:
+                                ev, et = _extract_value(v)
+                                if ev is not None:
+                                    all_values.append((ev, et))
             # Handle right as dict (old format)
             elif isinstance(right, dict):
                 if right.get('textValue'):
-                    compare_value = right['textValue']
-                    value_type = 'text'
-                elif right.get('values') and isinstance(right['values'], list) and right['values']:
-                    compare_value, value_type = _extract_value(right['values'][0])
+                    all_values.append((right['textValue'], 'text'))
+                elif right.get('values') and isinstance(right['values'], list):
+                    for v in right['values']:
+                        ev, et = _extract_value(v)
+                        if ev is not None:
+                            all_values.append((ev, et))
+            # Compatibility: keep compare_value as the first value, but stash the
+            # full list so _format_condition can render multi-valued operators properly.
+            if all_values:
+                compare_value, value_type = all_values[0]
 
-            conditions.append(StageCondition(
+            sc = StageCondition(
                 condition_id=cond.get('id'),
                 field_id=field_id,
                 field_name=field_name,
                 operator=operator,
                 compare_value=compare_value,
-                value_type=value_type
-            ))
+                value_type=value_type,
+                all_values=[v for v, _ in all_values],
+            )
+            conditions.append(sc)
 
         return conditions
 
@@ -1113,17 +1127,25 @@ class RexParserV4:
         if op in ('EMPTY', 'NOT_EMPTY', 'IS_EMPTY', 'IS_NOT_EMPTY'):
             op_display = op.replace('_', ' ')
             return f"{cond.field_name} {op_display}"
-        # Format the value
-        if cond.compare_value is None:
+
+        def _fmt(v):
+            if isinstance(v, bool):
+                return "Yes" if v else "No"
+            if isinstance(v, str):
+                return f'"{v}"'
+            return str(v)
+
+        # Multi-valued operators (CONTAINS_ANY_OF, IN, etc.) — render the full list
+        all_vals = getattr(cond, 'all_values', None) or []
+        if len(all_vals) > 1:
+            joined = ', '.join(_fmt(v) for v in all_vals)
+            op_display = op.lower().replace('_', ' ')
+            return f"{cond.field_name} {op_display} [{joined}]"
+
+        if cond.compare_value is None and not all_vals:
             return f"{cond.field_name} {op} (value not set)"
-        val = cond.compare_value
-        if cond.value_type == 'boolean':
-            val_str = "Yes" if val else "No"
-        elif isinstance(val, str):
-            val_str = f'"{val}"'
-        else:
-            val_str = str(val)
-        # Human-readable operator
+        val = all_vals[0] if all_vals else cond.compare_value
+        val_str = _fmt(val)
         op_map = {
             'EQUALS': '=',
             'NOT_EQUALS': '!=',
@@ -1132,7 +1154,7 @@ class RexParserV4:
             'LESS_THAN': '<',
             'LESS_THAN_OR_EQUALS': '<=',
         }
-        op_display = op_map.get(op, op)
+        op_display = op_map.get(op, op.lower().replace('_', ' '))
         return f"{cond.field_name} {op_display} {val_str}"
 
     def _format_assignee(self, task: 'TaskInfo') -> str:
@@ -1887,6 +1909,13 @@ class RexParserV4:
                          child_map: Optional[Dict] = None) -> str:
         """Generate JS stages array for a blueprint."""
         lines = []
+        # Map each task's RAW id → its display id (e.g. "1.1", "C1.2.3") so task
+        # dependencies (startAfterActionItemTemplate, stored as raw ids) can be
+        # emitted as display ids the front-end edge builder can resolve directly.
+        raw_to_display = {}
+        for stage in blueprint.stages:
+            for tidx, task in enumerate(stage.tasks, 1):
+                raw_to_display[task.id] = self._build_task_id(stage, tidx, prefix)
         for stage in blueprint.stages:
             trigger = self._build_trigger_text(stage)
             condition = self._build_condition_text(stage)
@@ -1956,15 +1985,23 @@ class RexParserV4:
 
                 # Dependencies (other tasks this task depends on)
                 dep_strs = []
+                dep_id_strs = []
                 for dep in (task.depends_on_tasks or []):
                     dep_name = self._js_str(dep.task_name) if dep.task_name else str(dep.task_id)
                     dep_strs.append(f'"{dep_name}"')
+                    # Resolve the dependency's RAW id to its display id, when it
+                    # points at a task in this same blueprint (the front-end task
+                    # flow uses these to draw real within-stage branches/merges).
+                    disp = raw_to_display.get(dep.task_id)
+                    if disp:
+                        dep_id_strs.append(f'"{disp}"')
                 deps_js = f',deps:[{",".join(dep_strs)}]' if dep_strs else ''
+                dep_ids_js = f',depIds:[{",".join(dep_id_strs)}]' if dep_id_strs else ''
 
                 task_str = (
                     f'    {{id:"{task_id}",name:"{self._js_str(task.name)}",'
                     f'agent:"{self._js_str(agent_label)}",agentClass:"{agent_class}"{ht_str},'
-                    f'_isChildLink:{is_child_link}{cidx_str}{desc_js}{ttype_js}{itype_js}{docs_js}{due_js}{deps_js},'
+                    f'_isChildLink:{is_child_link}{cidx_str}{desc_js}{ttype_js}{itype_js}{docs_js}{due_js}{deps_js}{dep_ids_js},'
                     f'\n     inputs:[{",".join(inputs)}],'
                     f'\n     outputs:[{",".join(outputs)}]}}'
                 )
@@ -2047,30 +2084,45 @@ class RexParserV4:
                         if not existing or order > existing[3:]:
                             field_last_producer[fid][bp_idx] = (js_id, field['name'], field.get('property_type', ''), stage.execution_order, tidx)
 
-        # Now find parent consumers whose field was produced in a child
-        # For each (field, consumer) pick one edge per child blueprint that produces it
+        # Now find CROSS-boundary edges in BOTH directions:
+        #   (A) child produces → parent consumes
+        #   (B) parent produces → child consumes  (and child → other-child)
+        # An edge is "cross" whenever the producer's blueprint differs from the
+        # consumer's. Intra-blueprint edges are handled elsewhere (parentEdges /
+        # cb.edges), so we only emit when the producer bp_idx != consumer bp_idx.
         edge_strs = []
         seen = set()
 
+        def emit_consumer_edges(consumer_js_id, consumer_bp_idx, shared_fields):
+            for field in shared_fields:
+                fid = field.get('id')
+                if not fid:
+                    continue
+                producers_by_bp = field_last_producer.get(fid, {})
+                for bp_idx, prod_info in producers_by_bp.items():
+                    if bp_idx == consumer_bp_idx:
+                        continue  # same blueprint — intra-bp edge, handled elsewhere
+                    prod_js_id = prod_info[0]
+                    key = (prod_js_id, consumer_js_id, fid)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    data = self._js_str(field['name'])
+                    dtype = self._js_str(field.get('property_type', ''))
+                    edge_strs.append(f'  {{from:"{prod_js_id}",to:"{consumer_js_id}",data:"{data}",type:"{dtype}"}}')
+
+        # (A) Parent consumers (bp_idx 0) fed by any child producer.
         for stage in parent.stages:
             for tidx, task in enumerate(stage.tasks, 1):
-                consumer_js_id = self._build_task_id(stage, tidx, '')
-                for field in task.shared_fields:
-                    fid = field.get('id')
-                    if not fid:
-                        continue
-                    producers_by_bp = field_last_producer.get(fid, {})
-                    for bp_idx, prod_info in producers_by_bp.items():
-                        if bp_idx == 0:
-                            continue  # same blueprint — handled by intra-bp edges
-                        prod_js_id = prod_info[0]
-                        key = (prod_js_id, consumer_js_id, fid)
-                        if key in seen:
-                            continue
-                        seen.add(key)
-                        data = self._js_str(field['name'])
-                        dtype = self._js_str(field.get('property_type', ''))
-                        edge_strs.append(f'  {{from:"{prod_js_id}",to:"{consumer_js_id}",data:"{data}",type:"{dtype}"}}')
+                emit_consumer_edges(self._build_task_id(stage, tidx, ''), 0, task.shared_fields)
+
+        # (B) Child consumers fed by the parent (or another child).
+        for ci, (bp_id, child_bp) in enumerate(child_map.items()):
+            prefix = f"C{ci+1}."
+            bp_idx = ci + 1
+            for stage in child_bp.stages:
+                for tidx, task in enumerate(stage.tasks, 1):
+                    emit_consumer_edges(self._build_task_id(stage, tidx, prefix), bp_idx, task.shared_fields)
 
         return "[\n" + ",\n".join(edge_strs) + "\n]" if edge_strs else "[]"
 
@@ -2338,7 +2390,7 @@ class RexParserV4:
             f"function getColorMap(){{var c=cssVar('--border');return{{ai:c,doc:c,excel:c,human:c,regrello:c,tabular:c,flash:c}}}}\n"
             f"var colorMap=null;\n"
             f"function cm(agent){{if(!colorMap)colorMap=getColorMap();return colorMap[agent]||cssVar('--accent')}}\n"
-            f"function toggleTheme(){{var r=document.documentElement;var cur=r.getAttribute('data-theme');var next=cur==='light'?'dark':'light';r.setAttribute('data-theme',next);colorMap=null;var btn=document.getElementById('theme-btn');if(btn)btn.classList.toggle('dark',next==='dark');if(window._simpleRendered){{window._simpleRendered=false;renderedTabs={{}};renderSimpleView()}}if(renderedTabs.vgraph){{renderedTabs.vgraph=false;if(curTab==='vgraph')renderVisualGraph()}}updateSvgMarkers()}}\n"
+            f"function toggleTheme(){{var r=document.documentElement;var cur=r.getAttribute('data-theme');var next=cur==='light'?'dark':'light';r.setAttribute('data-theme',next);colorMap=null;var btn=document.getElementById('theme-btn');if(btn)btn.classList.toggle('dark',next==='dark');if(window._simpleRendered){{window._simpleRendered=false;renderedTabs={{}};renderSimpleView()}}updateSvgMarkers()}}\n"
             f"function updateSvgMarkers(){{var b=cssVar('--border');var s=document.querySelector('#arr-seq path');if(s)s.setAttribute('fill',b)}}\n"
             f"var agentShort={{ai:'AI',doc:'Doc',excel:'Excel',human:'Human',regrello:'Regrello',tabular:'Tabular',flash:'Flash'}};\n"
             f"const clsMap={{ai:'a-ai',doc:'a-doc',excel:'a-excel',human:'a-human',regrello:'a-regrello',tabular:'a-tabular',flash:'a-flash'}};\n"

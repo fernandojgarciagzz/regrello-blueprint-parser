@@ -203,7 +203,6 @@ function parseStageConditions(sc) {
     const right = c.right;
     const field = left.field || {};
     const op = c.operator || c.operatorV2 || 'EQUALS';
-    let val = null;
     function extractVal(v) {
       if (!v || typeof v !== 'object') return null;
       if (v.stringValue != null) return v.stringValue;
@@ -212,16 +211,35 @@ function parseStageConditions(sc) {
       if (v.intValue != null) return v.intValue;
       if (v.integerValue != null) return v.integerValue;
       if (v.floatValue != null) return v.floatValue;
+      if (v.dateValue != null) return v.dateValue;
       return null;
     }
-    if (Array.isArray(right) && right.length) {
-      const ri = right[0];
-      if (ri && ri.values && ri.values.length) val = extractVal(ri.values[0]);
+    // Collect ALL values (CONTAINS_ANY_OF, IN, etc. can have multiple).
+    const allValues = [];
+    if (Array.isArray(right)) {
+      right.forEach(ri => {
+        if (ri && Array.isArray(ri.values)) {
+          ri.values.forEach(v => {
+            const ev = extractVal(v);
+            if (ev != null) allValues.push(ev);
+          });
+        }
+      });
     } else if (right && typeof right === 'object') {
-      if (right.textValue) val = right.textValue;
-      else if (right.values && right.values.length) val = extractVal(right.values[0]);
+      if (right.textValue != null) allValues.push(right.textValue);
+      else if (Array.isArray(right.values)) {
+        right.values.forEach(v => {
+          const ev = extractVal(v);
+          if (ev != null) allValues.push(ev);
+        });
+      }
     }
-    return { field_name: field.name || 'Unknown', operator: op, compare_value: val };
+    return {
+      field_name: field.name || 'Unknown',
+      operator: op,
+      compare_value: allValues.length ? allValues[0] : null,
+      all_values: allValues,
+    };
   });
 }
 
@@ -420,9 +438,29 @@ function buildTriggerText(stage) {
 
 function buildConditionText(stage) {
   if (!stage.starting_conditions.length) return null;
+  const opMap = {
+    EQUALS: '=', NOT_EQUALS: '!=',
+    GREATER_THAN: '>', GREATER_THAN_OR_EQUALS: '>=',
+    LESS_THAN: '<', LESS_THAN_OR_EQUALS: '<=',
+  };
+  const fmt = v => {
+    if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+    if (typeof v === 'string') return '"' + v + '"';
+    return String(v);
+  };
   return stage.starting_conditions.map(c => {
-    let op = c.operator === 'EQUALS' ? '=' : c.operator === 'NOT_EQUALS' ? '!=' : c.operator;
-    return c.field_name + ' ' + op + ' "' + (c.compare_value || '') + '"';
+    if (c.operator === 'EMPTY' || c.operator === 'NOT_EMPTY' || c.operator === 'IS_EMPTY' || c.operator === 'IS_NOT_EMPTY') {
+      return c.field_name + ' ' + c.operator.replace(/_/g, ' ').toLowerCase();
+    }
+    const all = c.all_values || (c.compare_value != null ? [c.compare_value] : []);
+    const op = opMap[c.operator] || c.operator.toLowerCase().replace(/_/g, ' ');
+    if (all.length > 1) {
+      return c.field_name + ' ' + op + ' [' + all.map(fmt).join(', ') + ']';
+    }
+    if (all.length === 1) {
+      return c.field_name + ' ' + op + ' ' + fmt(all[0]);
+    }
+    return c.field_name + ' ' + op + ' (value not set)';
   }).join(' AND ');
 }
 
@@ -437,6 +475,15 @@ function generateDataStructures(blueprints) {
 
   // Build stages array
   const stagesArr = [];
+  // Map each parent task's RAW id → display id ("eo.tidx") so task dependencies
+  // (depends_on_tasks holds raw ids) can be emitted as display ids the front-end
+  // edge builder resolves directly into real within-stage branches/merges.
+  const parentRawToDisplay = {};
+  for (const stage of parent.stages) {
+    for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+      parentRawToDisplay[stage.tasks[tidx].id] = stage.execution_order + '.' + (tidx + 1);
+    }
+  }
   for (const stage of parent.stages) {
     const trigger = buildTriggerText(stage);
     const condition = buildConditionText(stage);
@@ -465,6 +512,7 @@ function generateDataStructures(blueprints) {
       const ttype = task.task_type || 'DEFAULT';
       const docNames = (task.documents || []).map(d => d.name || '?').filter(Boolean);
       const depNames = (task.depends_on_tasks || []).map(d => d.task_name || String(d.task_id));
+      const depIds = (task.depends_on_tasks || []).map(d => parentRawToDisplay[d.task_id]).filter(Boolean);
 
       tasksArr.push({
         id: taskId, name: task.name,
@@ -478,6 +526,7 @@ function generateDataStructures(blueprints) {
         ...(docNames.length ? {docs: docNames} : {}),
         ...(task.due_interval_seconds ? {dueSec: task.due_interval_seconds} : {}),
         ...(depNames.length ? {deps: depNames} : {}),
+        ...(depIds.length ? {depIds: depIds} : {}),
         inputs: inputs, outputs: outputs
       });
     }
@@ -493,6 +542,13 @@ function generateDataStructures(blueprints) {
     const { map: childSourceMap, edges: childRawEdges } = buildSourceMap(childBp, prefix);
     const cStages = [];
     const grandchildIdxs = [];
+    // Raw id → display id for THIS child blueprint, used to resolve task deps.
+    const childRawToDisplay = {};
+    for (const stage of childBp.stages) {
+      for (let tidx = 0; tidx < stage.tasks.length; tidx++) {
+        childRawToDisplay[stage.tasks[tidx].id] = prefix + stage.execution_order + '.' + (tidx + 1);
+      }
+    }
     for (const stage of childBp.stages) {
       const trigger = buildTriggerText(stage);
       const condition = buildConditionText(stage);
@@ -512,6 +568,7 @@ function generateDataStructures(blueprints) {
         const cTtype = task.task_type || 'DEFAULT';
         const cDocNames = (task.documents || []).map(d => d.name || '?').filter(Boolean);
         const cDepNames = (task.depends_on_tasks || []).map(d => d.task_name || String(d.task_id));
+        const cDepIds = (task.depends_on_tasks || []).map(d => childRawToDisplay[d.task_id]).filter(Boolean);
         const cIsChildLink = !!(task.linked_workflow_id && childBpIds.includes(String(task.linked_workflow_id)));
         const cChildIdx = cIsChildLink ? childBpIds.indexOf(String(task.linked_workflow_id)) : -1;
         if (cIsChildLink && cChildIdx >= 0 && grandchildIdxs.indexOf(cChildIdx) === -1) grandchildIdxs.push(cChildIdx);
@@ -526,6 +583,7 @@ function generateDataStructures(blueprints) {
           ...(cDocNames.length ? {docs: cDocNames} : {}),
           ...(task.due_interval_seconds ? {dueSec: task.due_interval_seconds} : {}),
           ...(cDepNames.length ? {deps: cDepNames} : {}),
+          ...(cDepIds.length ? {depIds: cDepIds} : {}),
           inputs, outputs
         });
       }
