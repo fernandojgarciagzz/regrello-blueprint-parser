@@ -844,6 +844,32 @@ function extractFormsData(workflowTemplates) {
                 displayOrder: instr.displayOrder || 0
               });
             }
+            // Table forms (line-item grids): a section.tables[] entry whose fields[]
+            // are the grid COLUMNS. Emit one item of type 'table' per table so the
+            // renderer can show a header row of column names (otherwise the whole
+            // section renders empty — e.g. Chevron's "Supporting Documents Line Item
+            // Extraction" which has no plain fields, only a table).
+            for (const tbl of (sec.tables || [])) {
+              const cols = (tbl.fields || []).slice().sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)).map(c => {
+                const cr = fieldMap[c.spectrumFieldId] || {};
+                const cConstraints = humanizeConstraints(c.constraints);
+                smartRuleCount += cConstraints.length;
+                return {
+                  name: c.name || cr.name || 'Unknown',
+                  fieldType: cr.type || 'Unknown',
+                  isRequired: c.isRequired || false,
+                  constraints: cConstraints
+                };
+              });
+              totalFields += cols.length;
+              items.push({
+                type: 'table',
+                name: tbl.name || sec.name || 'Table',
+                description: tbl.description || '',
+                columns: cols,
+                displayOrder: tbl.displayOrder || 0
+              });
+            }
             items.sort((a, b) => a.displayOrder - b.displayOrder);
             totalFields += allFields.length;
 

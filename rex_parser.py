@@ -2391,7 +2391,7 @@ class RexParserV4:
             f"var colorMap=null;\n"
             f"function cm(agent){{if(!colorMap)colorMap=getColorMap();return colorMap[agent]||cssVar('--accent')}}\n"
             f"function toggleTheme(){{var r=document.documentElement;var cur=r.getAttribute('data-theme');var next=cur==='light'?'dark':'light';r.setAttribute('data-theme',next);colorMap=null;var btn=document.getElementById('theme-btn');if(btn)btn.classList.toggle('dark',next==='dark');if(window._simpleRendered){{window._simpleRendered=false;renderedTabs={{}};renderSimpleView()}}updateSvgMarkers()}}\n"
-            f"function updateSvgMarkers(){{var b=cssVar('--border');var s=document.querySelector('#arr-seq path');if(s)s.setAttribute('fill',b)}}\n"
+            f"function updateSvgMarkers(){{var s=document.querySelector('#arr-seq path');if(s)s.setAttribute('fill',cssVar('--edge-seq'));var x=document.querySelector('#arr-cross path');if(x)x.setAttribute('fill',cssVar('--edge-linked'))}}\n"
             f"var agentShort={{ai:'AI',doc:'Doc',excel:'Excel',human:'Human',regrello:'Regrello',tabular:'Tabular',flash:'Flash'}};\n"
             f"const clsMap={{ai:'a-ai',doc:'a-doc',excel:'a-excel',human:'a-human',regrello:'a-regrello',tabular:'a-tabular',flash:'a-flash'}};\n"
             f"function badgeCls(t){{var c=clsMap[t.agentClass]||'';if(t.ht)c+=' ht-'+t.ht;return c}}\n"

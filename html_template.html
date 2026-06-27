@@ -10,6 +10,26 @@
 <style>
 :root{--bg:#f7f9fb;--surface:#ffffff;--surface2:#eef1f3;--border:#dde2e6;--text:#1b2024;--text-dim:#5d656c;--text-placeholder:#88929a;--text-disabled:#b3bdc5;--text-interactive:#1672c7;--shadow-rgb:27,32,36;--accent:#1875d8;--accent-hover:#0067c9;--green:#0f8062;--green-hover:#007255;--orange:#c68006;--orange-hover:#b97400;--red:#c8414a;--red-hover:#b8323d;--neutral-soft:#eef1f3;--neutral-soft-hover:#e5e9ec;--neutral-soft-pressed:#dde2e6;--neutral-solid:#88929a;--neutral-solid-hover:#7c868e;--neutral-border:#d5dbe0;--primary-soft:#eaf3fe;--primary-border:#b7d5fb;--primary-text-muted:#1372d4;--danger-soft:#fdeceb;--danger-border:#f7c0bf;--danger-text-muted:#c33c46;--success-soft:#e4f7ef;--success-border:#acddc9;--success-text-muted:#047c5f;--warning-soft:#ffeed4;--warning-border:#f9ca92;--warning-text-muted:#955d00;--radius-sm:4px;--radius-md:8px;--radius-lg:12px;--shadow-card:0 1px 2px 0 rgba(0,0,0,.05);--shadow-1:0 1px 2px 0 rgba(0,0,0,.16),0 1px 2px 0 rgba(0,0,0,.06),0 0 2px 0 rgba(0,0,0,.06);--shadow-2:0 2px 8px 0 rgba(0,0,0,.16),0 1px 4px 0 rgba(0,0,0,.06),0 0 2px 0 rgba(0,0,0,.06);--shadow-3:0 4px 14px 0 rgba(0,0,0,.16),0 2px 8px 0 rgba(0,0,0,.06),0 0 2px 0 rgba(0,0,0,.06);--shadow-4:0 8px 24px 0 rgba(0,0,0,.16),0 4px 14px 0 rgba(0,0,0,.06),0 0 2px 0 rgba(0,0,0,.06);--tooltip-bg:#1b2024;--tooltip-text:#ffffff;--agent-ai:var(--agent-pill-text);--agent-doc:var(--agent-pill-text);--agent-excel:var(--agent-pill-text);--agent-human:var(--agent-pill-text);--agent-regrello:var(--agent-pill-text);--agent-tabular:var(--agent-pill-text);--agent-flash:var(--agent-pill-text);--agent-pill-bg:#f3edff;--agent-pill-text:#7c3aed;--subprocess:var(--neutral-solid);--subprocess-bg:rgba(136,146,154,.08);--subprocess-text:var(--neutral-solid);--conditional:var(--orange)}
 :root[data-theme="dark"]{--bg:#0f1419;--surface:#1a2029;--surface2:#242c36;--border:#3a4350;--text:#e8ecf0;--text-dim:#8a95a0;--text-placeholder:#6a747e;--text-disabled:#4a535c;--text-interactive:#7ab4ff;--shadow-rgb:0,0,0;--accent:#5a9cf5;--accent-hover:#7ab4ff;--green:#34c77e;--green-hover:#4cd892;--orange:#dda030;--orange-hover:#eab040;--red:#f06060;--red-hover:#ff7070;--neutral-soft:#242c36;--neutral-soft-hover:#2c3540;--neutral-soft-pressed:#343e4a;--neutral-solid:#505a65;--neutral-solid-hover:#5a6470;--neutral-border:#3a4350;--primary-soft:#1a2a40;--primary-border:#2a4a70;--primary-text-muted:#7ab4ff;--danger-soft:#301820;--danger-border:#503030;--danger-text-muted:#f06060;--success-soft:#102820;--success-border:#204838;--success-text-muted:#34c77e;--warning-soft:#2a2010;--warning-border:#504020;--warning-text-muted:#dda030;--radius-sm:4px;--radius-md:8px;--radius-lg:12px;--shadow-card:0 1px 2px 0 rgba(0,0,0,.15);--shadow-1:0 1px 2px 0 rgba(0,0,0,.3),0 1px 2px 0 rgba(0,0,0,.15),0 0 2px 0 rgba(0,0,0,.15);--shadow-2:0 2px 8px 0 rgba(0,0,0,.3),0 1px 4px 0 rgba(0,0,0,.15),0 0 2px 0 rgba(0,0,0,.15);--shadow-3:0 4px 14px 0 rgba(0,0,0,.3),0 2px 8px 0 rgba(0,0,0,.15),0 0 2px 0 rgba(0,0,0,.15);--shadow-4:0 8px 24px 0 rgba(0,0,0,.3),0 4px 14px 0 rgba(0,0,0,.15),0 0 2px 0 rgba(0,0,0,.15);--tooltip-bg:#e8ecf0;--tooltip-text:#0f1419;--agent-ai:var(--agent-pill-text);--agent-doc:var(--agent-pill-text);--agent-excel:var(--agent-pill-text);--agent-human:var(--agent-pill-text);--agent-regrello:var(--agent-pill-text);--agent-tabular:var(--agent-pill-text);--agent-flash:var(--agent-pill-text);--agent-pill-bg:#2a1f3d;--agent-pill-text:#c4a5ff;--subprocess:var(--neutral-solid);--subprocess-bg:rgba(80,90,101,.1);--subprocess-text:var(--text-dim);--conditional:var(--orange)}
+/* ── SHARED EDGE / CARD DESIGN TOKENS ──────────────────────────────────────
+   One spec for every flow visualization (Stage Map, Swimlanes, Task Map) so the
+   SAME logical edge or card looks identical across tabs. Color semantics:
+     sequence/stage handoff = accent blue (solid)
+     task-to-task           = neutral grey (dashed 4 3)
+     linked workflow        = purple    (dashed 5 3)
+     data flow              = green      (dashed 2 3)
+   Widths/opacities are unified here; views reference these vars instead of
+   redefining per-tab values. */
+:root{
+  /* Edge hierarchy — BOTH stage-flow and task-flow read as "important" (the task line
+     no longer fades): stage = blue, solid, heaviest; task = grey, full opacity, near-
+     solid with a subtle 6 2 dash that still signals "within-stage"; linked = purple
+     dash; data = green fine dash. Distinction is color + dash, not visibility. */
+  --edge-seq:var(--accent); --edge-seq-w:2.4; --edge-seq-op:1; --edge-seq-dash:none;
+  --edge-task:var(--neutral-solid); --edge-task-w:2; --edge-task-op:.95; --edge-task-dash:6 2;
+  --edge-linked:var(--agent-pill-text); --edge-linked-w:2; --edge-linked-op:.9; --edge-linked-dash:5 3;
+  --edge-df:var(--green); --edge-df-w:1.7; --edge-df-op:.85; --edge-df-dash:2 3;
+  --card-radius:var(--radius-sm); --card-accent-w:3px;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.55;display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
@@ -99,7 +119,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .stage-nm{font-weight:600;font-size:14px}
 .stage-cond-text{font-size:12px;color:var(--warning-text-muted);margin-top:2px}
 .stage-meta{font-size:12px;color:var(--text-dim);white-space:nowrap;margin-left:auto;flex-shrink:0}
-.expand-i{color:var(--text-dim);font-size:12px;transition:transform .2s;flex-shrink:0;margin-top:4px}
+.expand-i{color:var(--text-placeholder);font-size:10px;transition:transform .2s;flex-shrink:0}
 .expand-i.open{transform:rotate(90deg)}
 .stage-body{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:14px 16px;display:none}
 .stage-body.open{display:block}
@@ -115,21 +135,25 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .sf-trace-bar{position:sticky;top:0;z-index:10;background:var(--primary-soft);border:1px solid var(--primary-border);border-radius:var(--radius-sm);padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:12px;box-shadow:none}
 .sf-trace-bar strong{color:var(--primary-text-muted)}
 .sf-trace-close{cursor:pointer;color:var(--text-dim);font-size:20px;margin-left:auto;line-height:1}.sf-trace-close:hover{color:var(--text)}
-.sf-stage-box{border:1.5px dashed var(--neutral-border);border-radius:var(--radius-md);margin-bottom:0;overflow:hidden;transition:opacity .2s;box-shadow:none;background:transparent}
-.sf-stage-box.dimmed{opacity:.2}
-.sf-stage-box-hdr{display:flex;align-items:center;gap:8px;padding:8px 14px;background:transparent;border-bottom:none}
-.sf-stage-badge{min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:#fff;flex-shrink:0;box-shadow:none}
-.sf-stage-label{font-weight:600;font-size:12px;flex:1;letter-spacing:0;color:var(--text-dim)}
-.sf-stage-trigger{font-size:12px;color:var(--text-placeholder);margin-top:0;margin-left:4px}
-.sf-stage-cond{font-size:12px;color:var(--warning-text-muted);font-style:italic;background:var(--warning-soft);padding:1px 8px;border-radius:var(--radius-sm);display:inline-block;margin-top:0;margin-left:4px;border:1px solid var(--warning-border)}
-.sf-stage-body{padding:10px 14px;background:transparent}
-.sf-arrow-down{text-align:center;padding:0;color:transparent;font-size:0;position:relative;height:28px;user-select:none}
-.sf-arrow-down::before{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:2px dashed var(--border)}
-.sf-gate-box{border:1.5px dashed var(--warning-border);border-radius:var(--radius-md);padding:12px 14px;text-align:center;transition:opacity .2s;background:transparent;box-shadow:none}
-.sf-gate-box.dimmed{opacity:.2}
-.sf-gate-box .sf-stage-badge{display:inline-flex;margin-bottom:4px}
-.sf-gate-box-name{font-weight:600;font-size:12px;margin-bottom:2px;color:var(--warning-text-muted)}
-.sf-gate-box-msg{color:var(--text-placeholder);font-size:12px;font-style:italic}
+/* Process tab — Regrello "Stages" list look: solid-border cards, gray header
+   strip with stage name + "Starts ..." condition on the right, flat task rows. */
+.sf-stage-box{border:1px solid var(--neutral-border);border-radius:var(--radius-sm);margin-bottom:0;overflow:hidden;transition:opacity .2s;box-shadow:none;background:var(--surface)}
+.sf-stage-box.dimmed{opacity:.25}
+.sf-stage-box-hdr{display:flex;align-items:baseline;gap:8px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--neutral-border)}
+.sf-stage-badge{display:none}
+.sf-stage-label{font-weight:600;font-size:14px;flex:1;letter-spacing:0;color:var(--text);line-height:1.3}
+.sf-stage-trigger{font-size:12px;color:var(--text-dim);white-space:nowrap;flex-shrink:0;text-align:right}
+.sf-stage-trigger .sf-trig-strong{color:var(--text);font-weight:500}
+.sf-stage-cond{font-size:12px;color:var(--accent);white-space:nowrap;flex-shrink:0;text-align:right;cursor:help}
+.sf-stage-body{padding:0;background:transparent}
+.sf-arrow-down{text-align:center;padding:0;color:transparent;font-size:0;position:relative;height:20px;user-select:none}
+.sf-arrow-down::before{content:'';position:absolute;left:30px;top:0;bottom:0;border-left:1px dashed var(--neutral-border)}
+.sf-gate-box{border:1px solid var(--neutral-border);border-radius:var(--radius-sm);overflow:hidden;transition:opacity .2s;background:var(--surface);box-shadow:none}
+.sf-gate-box.dimmed{opacity:.25}
+.sf-gate-box .sf-stage-box-hdr{border-bottom:none}
+.sf-gate-box .sf-stage-badge{display:none}
+.sf-gate-box-name{font-weight:600;font-size:14px;color:var(--text)}
+.sf-gate-box-msg{color:var(--text-dim);font-size:12px;padding:12px 16px}
 .sf-child-invoke{border:2px dashed var(--agent-pill-text)!important;cursor:pointer;transition:all .15s}
 .sf-child-invoke:hover{border-color:var(--agent-pill-text)!important;background:color-mix(in srgb,var(--agent-pill-text) 6%,transparent)}
 .sf-child-badge{font-size:12px;background:var(--agent-pill-bg);color:var(--agent-pill-text);padding:2px 8px;border-radius:var(--radius-sm);margin-left:8px}
@@ -146,25 +170,35 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .sf-field-link{cursor:pointer;transition:all .15s}.sf-field-link:hover{background:color-mix(in srgb,var(--accent) 15%,transparent);border-color:var(--accent)}
 .sf-field-link.traced{background:color-mix(in srgb,var(--accent) 30%,transparent);border-color:var(--accent);box-shadow:0 0 8px color-mix(in srgb,var(--accent) 40%,transparent);font-weight:600;outline:2px solid var(--accent);outline-offset:1px}
 .sf-field-link.dimfield{opacity:.4}
-.sf-ctx-section{margin-bottom:20px}
-.sf-ctx-section h3{font-size:14px;font-weight:600;margin:0 0 10px;letter-spacing:0}
-.sf-ctx-section h4{font-size:12px;color:var(--text-dim);margin:0 0 8px;font-weight:600}
-.sf-ctx-stat{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:14px;border-radius:var(--radius-sm)}
+.sf-ctx-section{margin-bottom:22px}
+.sf-ctx-section h3{font-size:15px;font-weight:600;margin:0 0 8px;letter-spacing:0;color:var(--text)}
+.sf-ctx-section h4{font-size:11px;color:var(--text-dim);margin:14px 0 4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.sf-ctx-stat{display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid var(--neutral-border);font-size:14px;border-radius:0}
 .sf-ctx-stat:hover{background:var(--neutral-soft)}
-.sf-ctx-stat strong{color:var(--accent);font-size:16px}
+.sf-ctx-stat strong{color:var(--accent);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
 .sf-ctx-tag{display:inline-block;font-size:12px;padding:4px 10px;border-radius:9999px;margin:2px;background:var(--surface);border:1px solid var(--border);font-weight:400}
 .sf-ctx-tag.prod{background:var(--success-soft);border-color:var(--success-border);color:var(--success-text-muted)}
 .sf-ctx-tag.cons{background:color-mix(in srgb,var(--primary-text-muted) 8%,transparent);border-color:color-mix(in srgb,var(--primary-text-muted) 25%,transparent);color:var(--primary-text-muted)}
 .sf-ctx-journey{font-size:12px;color:var(--text-dim);padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);line-height:1.5;box-shadow:none}
 
-/* TASK CARDS */
-.tcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;overflow:hidden;transition:all .2s;box-shadow:var(--shadow-card)}
-.tcard:hover{box-shadow:var(--shadow-1);border-color:var(--neutral-solid)}
+/* TASK ROWS — flat rows inside a stage card (Regrello "Stages" list look) */
+.tcard{background:transparent;border:none;border-top:1px solid var(--neutral-border);border-radius:0;margin-bottom:0;overflow:hidden;transition:opacity .2s}
+.tcard:first-child{border-top:none}
 .tcard.dimmed{opacity:.25}
-.tcard-head{padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;border-left:3px solid var(--accent)}
+.tcard-head{padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;border-left:none}
 .tcard-head:hover{background:var(--neutral-soft)}
-.tid{font-size:12px;font-weight:600;color:var(--primary-text-muted);background:transparent;padding:2px 0;border-radius:0;min-width:auto}
-.tname{font-weight:400;font-size:14px;flex:1}
+.tcard.open-row>.tcard-head{background:var(--neutral-soft)}
+/* status circle (left), mirrors the real app's task status dot */
+.sf-status-dot{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--neutral-solid);flex-shrink:0;background:var(--surface)}
+.tid{font-size:12px;font-weight:600;color:var(--primary-text-muted);background:transparent;padding:0;border-radius:0;min-width:auto;flex-shrink:0;font-variant-numeric:tabular-nums}
+.tname{font-weight:600;font-size:14px;flex:1;color:var(--text);min-width:0}
+/* right-side metadata: agent pill + "Starts.../Time to complete" + I/O hint */
+.sf-task-right{display:flex;align-items:center;gap:14px;flex-shrink:0;margin-left:auto}
+.sf-task-meta{font-size:12px;color:var(--text-dim);text-align:right;line-height:1.4;white-space:nowrap}
+.sf-task-meta .sf-meta-strong{color:var(--text);font-weight:500}
+.sf-io-hint{font-size:11px;color:var(--text-dim);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.sf-io-hint .sf-io-in{color:var(--warning-text-muted);font-weight:600}
+.sf-io-hint .sf-io-out{color:var(--green);font-weight:600}
 .abadge{font-size:12px;padding:3px 10px 3px 6px;border-radius:9999px;white-space:nowrap;font-weight:400;letter-spacing:0;text-transform:none;background:var(--agent-pill-bg);border:none;display:inline-flex;align-items:center;gap:4px;color:var(--agent-pill-text)}
 .abadge::before{content:'';width:18px;height:18px;flex-shrink:0;border-radius:50%;background:var(--agent-pill-text);-webkit-mask-size:12px 12px;mask-size:12px 12px;-webkit-mask-position:center;mask-position:center;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2031.17%2031.17%27%20fill%3D%27currentColor%27%3E%3Cpath%20d%3D%27M15.58%200c.75%200%201.47.3%202%20.83s.83%201.25.83%202c0%201.05-.57%201.97-1.42%202.45v4.63h1.42c2.63%200%205.15%201.04%207.01%202.9s2.9%204.38%202.9%207.01h1.42c.38%200%20.74.15%201%20.42.27.27.42.63.42%201v4.25c0%20.38-.15.74-.42%201-.27.27-.63.42-1%20.42h-1.42v1.42c0%20.75-.3%201.47-.83%202s-1.25.83-2%20.83H5.67c-.75%200-1.47-.3-2-.83s-.83-1.25-.83-2v-1.42H1.42c-.38%200-.74-.15-1-.42C.15%2026.24%200%2025.88%200%2025.5v-4.25c0-.38.15-.74.42-1%20.27-.27.63-.42%201-.42h1.42c0-2.63%201.04-5.15%202.9-7.01s4.38-2.9%207.01-2.9h1.42V5.28c-.85-.48-1.42-1.4-1.42-2.45%200-.75.3-1.47.83-2S14.83%200%2015.58%200zM9.21%2018.42c-.94%200-1.84.37-2.5%201.04-.67.66-1.04%201.56-1.04%202.5s.37%201.84%201.04%202.5c.66.67%201.56%201.04%202.5%201.04s1.84-.37%202.5-1.04c.67-.66%201.04-1.56%201.04-2.5s-.37-1.84-1.04-2.5c-.66-.67-1.56-1.04-2.5-1.04zm12.75%200c-.94%200-1.84.37-2.5%201.04-.67.66-1.04%201.56-1.04%202.5s.37%201.84%201.04%202.5c.66.67%201.56%201.04%202.5%201.04s1.84-.37%202.5-1.04c.67-.66%201.04-1.56%201.04-2.5s-.37-1.84-1.04-2.5c-.66-.67-1.56-1.04-2.5-1.04z%27%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2031.17%2031.17%27%20fill%3D%27currentColor%27%3E%3Cpath%20d%3D%27M15.58%200c.75%200%201.47.3%202%20.83s.83%201.25.83%202c0%201.05-.57%201.97-1.42%202.45v4.63h1.42c2.63%200%205.15%201.04%207.01%202.9s2.9%204.38%202.9%207.01h1.42c.38%200%20.74.15%201%20.42.27.27.42.63.42%201v4.25c0%20.38-.15.74-.42%201-.27.27-.63.42-1%20.42h-1.42v1.42c0%20.75-.3%201.47-.83%202s-1.25.83-2%20.83H5.67c-.75%200-1.47-.3-2-.83s-.83-1.25-.83-2v-1.42H1.42c-.38%200-.74-.15-1-.42C.15%2026.24%200%2025.88%200%2025.5v-4.25c0-.38.15-.74.42-1%20.27-.27.63-.42%201-.42h1.42c0-2.63%201.04-5.15%202.9-7.01s4.38-2.9%207.01-2.9h1.42V5.28c-.85-.48-1.42-1.4-1.42-2.45%200-.75.3-1.47.83-2S14.83%200%2015.58%200zM9.21%2018.42c-.94%200-1.84.37-2.5%201.04-.67.66-1.04%201.56-1.04%202.5s.37%201.84%201.04%202.5c.66.67%201.56%201.04%202.5%201.04s1.84-.37%202.5-1.04c.67-.66%201.04-1.56%201.04-2.5s-.37-1.84-1.04-2.5c-.66-.67-1.56-1.04-2.5-1.04zm12.75%200c-.94%200-1.84.37-2.5%201.04-.67.66-1.04%201.56-1.04%202.5s.37%201.84%201.04%202.5c.66.67%201.56%201.04%202.5%201.04s1.84-.37%202.5-1.04c.67-.66%201.04-1.56%201.04-2.5s-.37-1.84-1.04-2.5c-.66-.67-1.56-1.04-2.5-1.04z%27%2F%3E%3C%2Fsvg%3E")}
 .a-ai,.a-doc,.a-excel,.a-regrello,.a-tabular,.a-flash{background:var(--agent-pill-bg);color:var(--agent-pill-text)}
@@ -174,8 +208,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .a-linked{background:var(--agent-pill-bg);color:var(--agent-pill-text)}.a-linked::before{background:var(--agent-pill-text);-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z'/%3E%3C/svg%3E")}
 .tcard .abadge{font-size:11px;padding:2px 7px 2px 4px;gap:3px}
 .tcard .abadge::before{width:14px;height:14px;-webkit-mask-size:10px 10px;mask-size:10px 10px}
-.tdetail{display:none;padding:0 14px 12px}
-.tdetail.open{display:block;background:var(--bg);border-radius:0 0 var(--radius-sm) var(--radius-sm);border-top:1px dashed var(--border);padding:12px 16px}
+.tdetail{display:none;padding:0}
+.tdetail.open{display:block;background:var(--bg);border-radius:0;border-top:1px solid var(--neutral-border);padding:12px 16px 14px 42px}
 .dep-chain{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:12px}
 .dep-chain span{padding:2px 8px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;gap:3px}
 .dep-in{background:color-mix(in srgb,var(--primary-text-muted) 8%,transparent);color:var(--primary-text-muted);border:1px solid color-mix(in srgb,var(--primary-text-muted) 18%,transparent)}
@@ -251,7 +285,32 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .erow .eid{color:var(--text-dim);font-size:12px}
 
 /* FORMS TAB */
-#tp-forms.active{display:block;overflow-y:auto}
+#tp-forms.active{display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:0}
+/* Forms tab: left form navigator + large form preview on the right */
+.fm-layout{display:flex;flex:1;min-height:0;overflow:hidden}
+.fm-sidebar{flex:0 0 280px;display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--border);background:var(--bg)}
+.fm-sb-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.fm-sb-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-dim);display:flex;align-items:center;gap:8px}
+.fm-sb-count{font-size:11px;font-weight:700;color:var(--accent);background:var(--primary-soft);border-radius:9999px;padding:1px 8px}
+.fm-sb-stats{font-size:11px;color:var(--text-dim);margin-top:3px}
+.fm-sb-search{margin:8px 12px 4px;padding:6px 10px;font-size:12px;font-family:inherit;border:1px solid var(--neutral-border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);outline:none}
+.fm-sb-search:focus{border-color:var(--accent)}
+.fm-sb-list{overflow-y:auto;padding:6px;flex:1}
+.fm-sb-item{padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:background .12s;margin-bottom:2px;border:1px solid transparent}
+.fm-sb-item:hover{background:var(--neutral-soft)}
+.fm-sb-item.active{background:var(--primary-soft);border-color:var(--primary-border)}
+.fm-sb-item.active .fm-sb-item-name{color:var(--accent)}
+.fm-sb-item-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:2px}
+.fm-sb-item-meta{font-size:11px;color:var(--text-dim)}
+.fm-sb-rules{color:var(--warning-text-muted);font-weight:500}
+.fm-main{flex:1;min-width:0;overflow-y:auto;padding:28px 32px;background:var(--bg)}
+/* the form rendered as an actual document sheet: white card, border, centered */
+.fm-sheet{max-width:860px;margin:0 auto;background:var(--surface);border:1px solid var(--neutral-border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden}
+.fm-form-head{padding:20px 24px 16px;border-bottom:1px solid var(--neutral-border);background:var(--surface)}
+.fm-form-title{font-size:18px;font-weight:600;color:var(--text);line-height:1.3}
+.fm-form-sub{font-size:12px;color:var(--text-dim);margin-top:3px}
+.fm-form-tasks{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.fm-form-body{padding:4px 4px 12px}
 .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-card);transition:all .2s}
 .form-card:hover{box-shadow:var(--shadow-1);border-color:var(--neutral-solid)}
 .form-card-hdr{padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid transparent}
@@ -260,22 +319,48 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .form-card-name{font-weight:600;font-size:14px;flex:1}
 .form-card-meta{display:flex;gap:12px;font-size:12px;color:var(--text-dim)}
 .form-card-meta span{display:inline-flex;align-items:center;gap:4px}
-.form-card-body{display:none;padding:0;background:var(--bg)}
+.form-card-body{display:none;padding:8px 24px 16px;background:var(--surface)}
 .form-card-body.open{display:block}
-.form-section-block{border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-sm);margin:16px 20px;overflow:hidden;background:var(--surface)}
-.form-section-hdr{padding:10px 16px;font-size:14px;font-weight:700;background:var(--surface2);color:var(--text)}
-.form-section-rule{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);padding:6px 16px;background:color-mix(in srgb,var(--primary-soft) 50%,var(--surface))}
-.form-section-rule svg{width:14px;height:14px;flex-shrink:0;color:var(--text-dim)}
-.form-section-rule .rule-field{background:var(--neutral-soft);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 6px;font-size:11px;font-weight:500;color:var(--text)}
-.form-instruction{font-size:13px;color:var(--text-dim);padding:12px 16px;line-height:1.6}
-.form-fields-wrap{padding:16px;display:flex;flex-direction:column;gap:16px}
-.form-fields-row{display:grid;grid-template-columns:1fr;gap:16px 24px}
-.form-fields-row.two-col{grid-template-columns:1fr 1fr}
-.form-field-block{display:flex;flex-direction:column;gap:4px}
-.form-field-label{font-size:13px;color:var(--text);font-weight:400;display:flex;align-items:baseline;gap:2px}
+/* Regrello form look: sections separated by a top divider; each section header is a
+   muted "not-started" status circle + 16px section name (+ optional description),
+   mirroring the real form preview/configure view. */
+.form-section-block{border:none;border-radius:0;margin:0;overflow:visible;background:transparent;padding:18px 20px 6px}
+.form-section-block+.form-section-block{border-top:1px solid var(--neutral-border)}
+.form-section-hdr{display:flex;align-items:flex-start;gap:8px;padding:0 0 4px;background:transparent}
+.form-section-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--neutral-solid);flex-shrink:0;margin-top:2px;background:transparent}
+.form-section-titlewrap{flex:1;min-width:0}
+.form-section-name{font-size:16px;font-weight:600;color:var(--text);line-height:1.4}
+.form-section-desc{font-size:13px;color:var(--text-dim);margin-top:4px;line-height:1.5}
+.form-instruction{font-size:14px;color:var(--text-dim);padding:0 0 8px 26px;line-height:1.6}
+/* section body content aligns under the title (past the 18px dot + 8px gap) */
+.form-fields-wrap{padding:8px 0 12px 26px;display:flex;flex-direction:column;gap:14px}
+.form-fields-row{display:flex;gap:20px}
+.form-fields-row>.form-field-block{flex:1;min-width:0}
+.form-fields-row.two-col{display:flex}
+.form-field-block{display:flex;flex-direction:column;gap:5px}
+.form-field-spacer{visibility:hidden}
+/* richer field affordances: label row with trailing type / pre-filled chips */
+.form-field-labelrow{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.form-field-tags{display:inline-flex;align-items:center;gap:4px;flex-shrink:0}
+.form-type-chip{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--text-dim);background:var(--neutral-soft);border:1px solid var(--neutral-border);border-radius:9999px;padding:1px 7px;white-space:nowrap}
+.form-prefill-chip{font-size:10px;font-weight:600;color:var(--accent);background:var(--primary-soft);border:1px solid var(--primary-border);border-radius:9999px;padding:1px 7px;white-space:nowrap}
+.form-select-ph{color:var(--text-placeholder)}
+.form-field-options{display:flex;flex-wrap:wrap;gap:4px;margin-top:1px}
+.form-opt-chip{font-size:11px;color:var(--text);background:var(--bg);border:1px solid var(--neutral-border);border-radius:var(--radius-sm);padding:1px 7px}
+.form-opt-more{font-size:11px;color:var(--text-dim);padding:1px 4px}
+/* Table form (line-item grid) — header row of column names + placeholder row */
+.form-table-wrap{margin:8px 0 12px 26px}
+.form-table-scroll{overflow-x:auto;border:1px solid var(--neutral-border);border-radius:var(--radius-sm)}
+.form-table{border-collapse:collapse;width:100%;font-size:13px;background:var(--surface)}
+.form-table th{text-align:left;font-weight:600;font-size:12px;color:var(--text-dim);padding:8px 12px;background:var(--bg);border-bottom:1px solid var(--neutral-border);white-space:nowrap}
+.form-table th+th,.form-table td+td{border-left:1px solid var(--neutral-border)}
+.form-table td{padding:8px 12px;border-bottom:none}
+.form-table .form-table-rownum{width:36px;color:var(--text-placeholder);text-align:center;font-variant-numeric:tabular-nums}
+.form-table-cell{display:block;min-width:90px;height:18px;border-radius:3px;background:var(--neutral-soft)}
+.form-field-label{font-size:14px;color:var(--text);font-weight:400;display:flex;align-items:baseline;gap:2px}
 .form-field-label .freq{color:var(--danger-text-muted);font-weight:600;margin-left:1px}
 .form-field-passing{color:var(--primary-text-muted);font-size:14px;margin-left:4px;cursor:help}
-.form-field-input{border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;color:var(--text-placeholder);background:var(--surface);min-height:36px;display:flex;align-items:center;position:relative}
+.form-field-input{border:1px solid var(--text-disabled);border-radius:var(--radius-sm);padding:8px 10px;font-size:14px;color:var(--text-placeholder);background:var(--bg);min-height:36px;display:flex;align-items:center;position:relative}
 .form-field-input.select::after{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);width:10px;height:10px;background:var(--text-dim);-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");-webkit-mask-size:contain;mask-size:contain}
 .form-field-input.number::after{content:'';position:absolute;right:10px;top:50%;transform:translateY(-50%);width:12px;height:16px;background:var(--text-dim);-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 16' fill='none' stroke='currentColor' stroke-width='1.5'%3E%3Cpath d='M3 6l3-3 3 3M3 10l3 3 3-3'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 16' fill='none' stroke='currentColor' stroke-width='1.5'%3E%3Cpath d='M3 6l3-3 3 3M3 10l3 3 3-3'/%3E%3C/svg%3E");-webkit-mask-size:contain;mask-size:contain}
 .form-field-input.date{color:var(--text-placeholder)}
@@ -290,8 +375,13 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .form-field-input.doc::before{content:'';width:14px;height:14px;background:var(--text-dim);-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48'/%3E%3C/svg%3E");-webkit-mask-size:contain;mask-size:contain;flex-shrink:0}
 .form-field-input.signature{min-height:80px;justify-content:center;flex-direction:column;gap:4px;border-color:var(--border)}
 .form-field-input.signature .sig-text{color:var(--text-placeholder);font-size:13px}
-.form-field-rule{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);margin-top:2px;padding:2px 8px;background:var(--neutral-soft);border-radius:var(--radius-sm);width:fit-content}
-.form-field-rule svg{width:12px;height:12px;flex-shrink:0;color:var(--text-dim)}
+/* Smart-rule block (mirrors Regrello ConstraintRuleBlock): bordered, eye icon +
+   rule text; the field name inside reads as a subtle chip. */
+.form-field-rule{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--text);margin-top:4px;padding:5px 8px;background:var(--surface);border:1px solid var(--neutral-border);border-radius:var(--radius-sm);width:fit-content;max-width:100%;line-height:1.45}
+.form-field-rule svg{width:14px;height:14px;flex-shrink:0;color:var(--text-dim);margin-top:1px}
+.form-section-rule{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--text);margin:4px 0 10px 26px;padding:5px 8px;background:var(--surface);border:1px solid var(--neutral-border);border-radius:var(--radius-sm);width:fit-content;max-width:100%;line-height:1.45}
+.form-section-rule svg{width:14px;height:14px;flex-shrink:0;color:var(--text-dim);margin-top:1px}
+.form-section-rule .rule-field,.form-field-rule .rule-field{background:var(--bg);border:1px solid var(--neutral-border);border-radius:var(--radius-sm);padding:0 5px;font-size:11px;font-weight:500;color:var(--text)}
 .form-task-chip{font-size:11px;padding:2px 8px;border-radius:var(--radius-sm);background:var(--neutral-soft);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;white-space:nowrap}
 .form-task-chip:hover{background:var(--primary-soft);border-color:var(--primary-border);color:var(--primary-text-muted)}
 .form-expand-i{color:var(--text-dim);font-size:11px;transition:transform .2s;flex-shrink:0}
@@ -368,7 +458,7 @@ a.jump:hover{text-decoration:underline}
 #simple-svg .sn-rect{cursor:pointer;transition:opacity .2s,stroke-width .15s,stroke .15s,fill .15s;fill:var(--surface)!important;stroke:var(--border)!important;stroke-width:1.25}
 #simple-svg .stage-node:hover .sn-rect{stroke:var(--accent)!important;stroke-width:1.75}
 #simple-svg .stage-node.sn-selected .sn-rect{stroke:var(--accent)!important;stroke-width:2.5;filter:drop-shadow(0 0 0 var(--accent))}
-#simple-svg .sn-rect.has-children{stroke:var(--agent-pill-text)!important;stroke-width:1.75}
+#simple-svg .sn-rect.has-children{stroke:var(--edge-linked)!important;stroke-width:1.75}
 #simple-svg .sn-stripe{pointer-events:none;display:none}
 #simple-svg .sn-label{font-size:13px;font-weight:600;fill:var(--text);pointer-events:none;letter-spacing:-0.01em}
 #simple-svg .sn-sub{font-size:11px;fill:var(--text-dim);pointer-events:none}
@@ -378,9 +468,9 @@ a.jump:hover{text-decoration:underline}
 #simple-svg .stage-node.is-conditional .sn-badge-text{fill:var(--warning-text-muted)}
 #simple-svg .stage-node.has-children .sn-badge-circle{fill:var(--agent-pill-bg);stroke:var(--agent-pill-text)}
 #simple-svg .stage-node.has-children .sn-badge-text{fill:var(--agent-pill-text)}
-#simple-svg .sn-accent-bar{fill:var(--accent);pointer-events:none}
+#simple-svg .sn-accent-bar{fill:var(--edge-seq);pointer-events:none}
 #simple-svg .stage-node.is-conditional .sn-accent-bar{fill:var(--warning-text-muted)}
-#simple-svg .stage-node.has-children .sn-accent-bar{fill:var(--agent-pill-text)}
+#simple-svg .stage-node.has-children .sn-accent-bar{fill:var(--edge-linked)}
 #simple-svg .sn-corner-pill{pointer-events:none}
 #simple-svg .sn-corner-pill rect{fill:var(--warning-soft);stroke:var(--warning-border);stroke-width:1}
 #simple-svg .sn-corner-pill text{font-size:9px;font-weight:700;fill:var(--warning-text-muted);text-anchor:middle;letter-spacing:0.04em}
@@ -395,11 +485,11 @@ a.jump:hover{text-decoration:underline}
 #simple-svg .stage-node *{pointer-events:none}
 #simple-svg .stage-node .sn-rect{pointer-events:all;cursor:pointer}
 #simple-svg .agent-dot{display:none}
-#simple-svg .seq-arrow{fill:none;stroke:var(--text-dim);stroke-width:1.75;opacity:.7}
+#simple-svg .seq-arrow{fill:none;stroke:var(--edge-seq);stroke-width:var(--edge-seq-w);opacity:var(--edge-seq-op)}
 #simple-svg .gw-diamond{fill:color-mix(in srgb,var(--conditional) 14%,transparent);stroke:var(--conditional);stroke-width:1.5;display:none}
 #simple-svg .child-rect{fill:color-mix(in srgb,var(--agent-pill-text) 6%,transparent);stroke:var(--agent-pill-text);stroke-dasharray:6 3;cursor:pointer}
 #simple-svg .child-label{font-size:12px;fill:var(--agent-pill-text);font-weight:600}
-#simple-svg .cross-edge{stroke:var(--agent-pill-text);stroke-width:2;fill:none;stroke-dasharray:5 3}
+#simple-svg .cross-edge{stroke:var(--edge-linked);stroke-width:var(--edge-linked-w);fill:none;stroke-dasharray:var(--edge-linked-dash)}
 #simple-svg .join-bar{stroke:var(--border);stroke-width:1.5;fill:none}
 #tp-map .graph-toolbar{box-shadow:0 1px 0 0 color-mix(in srgb,var(--text) 4%,transparent)}
 .sv-legend{box-shadow:var(--shadow-1)}
@@ -535,10 +625,12 @@ a.jump:hover{text-decoration:underline}
 #tp-lane .lv-trace-clear{background:var(--agent-pill-bg);color:var(--agent-pill-text);border-color:var(--agent-pill-text)}
 #tp-lane .lv-legend,#tp-tmap2 .lv-legend{display:flex;gap:14px;align-items:center;font-size:11px;color:var(--text-dim);margin-left:auto;flex-wrap:wrap}
 #tp-lane .lv-legend-item,#tp-tmap2 .lv-legend-item{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-#tp-lane .lv-legend-line,#tp-tmap2 .lv-legend-line{width:24px;height:0;border-top:2px solid var(--accent)}
-#tp-lane .lv-legend-line.lv-legend-task,#tp-tmap2 .lv-legend-line.lv-legend-task{border-top:1.5px dashed var(--neutral-solid)}
-#tp-lane .lv-legend-line.lv-legend-child,#tp-tmap2 .lv-legend-line.lv-legend-child{border-top:2px dashed var(--agent-pill-text)}
-#tp-lane .lv-legend-line.lv-legend-df,#tp-tmap2 .lv-legend-line.lv-legend-df{border-top:2px dashed var(--green)}
+/* Legend swatches mirror the live edge tokens so the key matches the lines: stage =
+   solid blue (heaviest), task = grey near-solid (full strength, subtle dash). */
+#tp-lane .lv-legend-line,#tp-tmap2 .lv-legend-line{width:24px;height:0;border-top:2.4px solid var(--edge-seq);opacity:var(--edge-seq-op)}
+#tp-lane .lv-legend-line.lv-legend-task,#tp-tmap2 .lv-legend-line.lv-legend-task{border-top:2px dashed var(--edge-task);opacity:var(--edge-task-op)}
+#tp-lane .lv-legend-line.lv-legend-child,#tp-tmap2 .lv-legend-line.lv-legend-child{border-top:2px dashed var(--edge-linked);opacity:var(--edge-linked-op)}
+#tp-lane .lv-legend-line.lv-legend-df,#tp-tmap2 .lv-legend-line.lv-legend-df{border-top:2px dashed var(--edge-df);opacity:var(--edge-df-op)}
 #tp-lane .lv-legend-line.lv-legend-df-cross{border-top:2px dotted var(--green)}
 
 /* ── Task Map 2 (single-axis dagre flow) ───────────────────────────── */
@@ -546,20 +638,40 @@ a.jump:hover{text-decoration:underline}
    pixel size inside a scrollable container; the user pans by scrolling. "Fit to
    Screen" applies a CSS scale() to the wrap (transform-origin top-left) without
    breaking native scroll. No drag-pan / d3.zoom. */
-#tp-tmap2 .tm2-scroll{flex:1;overflow:auto;background:var(--bg);position:relative}
+/* Same dotted-grid canvas as the Stage Map (#simple-svg), so both flow maps read as
+   the same kind of surface. */
+#tp-tmap2 .tm2-scroll{flex:1;overflow:auto;position:relative;background-color:var(--bg);background-image:radial-gradient(circle,color-mix(in srgb,var(--text-dim) 18%,transparent) 1px,transparent 1px);background-size:18px 18px}
+:root[data-theme="dark"] #tp-tmap2 .tm2-scroll{background-image:radial-gradient(circle,color-mix(in srgb,var(--text-dim) 22%,transparent) 1px,transparent 1px)}
 #tp-tmap2 .tm2-svg-wrap{position:relative;display:inline-block;min-width:100%}
 #tp-tmap2 #tm2-svg{display:block}
 #tp-tmap2 .tm2-band{fill:color-mix(in srgb,var(--accent) 4%,var(--surface));stroke:color-mix(in srgb,var(--accent) 20%,var(--border));stroke-width:1.5}
 #tp-tmap2 .tm2-band.tm2-band-child{--lv-bp:var(--agent-pill-text);fill:color-mix(in srgb,var(--lv-bp) 6%,var(--surface));stroke:color-mix(in srgb,var(--lv-bp) 35%,transparent);stroke-dasharray:6 3}
-#tp-tmap2 .tm2-band-label{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;padding:5px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+/* Stage header label. Task Map is the "read the stages" view and opens at natural 1:1,
+   so the name carries header weight (14px/600) — a touch larger than the Stage Map
+   overview node label, which is deliberately compact to pack many stages on screen. */
+#tp-tmap2 .tm2-band-label{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;padding:5px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+/* Number pill + stage name on one row; condition pill drops below when wrapping. */
+#tp-tmap2 .tm2-band-title{display:inline-flex;align-items:center;min-width:0;max-width:100%}
+#tp-tmap2 .tm2-band-nametext{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* When a stage has a condition the header wraps so the IF-pill can sit below the name. */
+#tp-tmap2 .tm2-band-label.has-cond{white-space:normal;text-overflow:clip;overflow:visible;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+#tp-tmap2 .tm2-band-label.has-cond .tm2-band-title{max-width:100%}
 #tp-tmap2 .tm2-band-label.tm2-band-child{--lv-bp:var(--agent-pill-text);color:var(--lv-bp);font-style:italic}
-#tp-tmap2 .tm2-band-num{color:var(--accent);font-weight:700;margin-right:3px;font-variant-numeric:tabular-nums}
-#tp-tmap2 .tm2-band-child .tm2-band-num{color:var(--lv-bp)}
-#tp-tmap2 .tm2-band-sub{font-size:10px;font-weight:400;color:var(--text-dim);margin-left:6px;font-style:normal}
+/* Stage-number badge: filled pill, white text — IDENTICAL to the Stage Map node badge
+   (.sn-badge-circle) and the Swimlanes stage header, so a stage reads the same way in
+   every view. Child (sub-workflow) stages tint the pill to their BP accent. */
+#tp-tmap2 .tm2-band-num{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 6px;border-radius:9px;background:var(--accent);color:#fff;font-weight:700;font-size:11px;margin-right:6px;font-variant-numeric:tabular-nums;vertical-align:middle}
+#tp-tmap2 .tm2-band-child .tm2-band-num{background:var(--lv-bp);color:#fff}
+#tp-tmap2 .tm2-band-sub{font-size:11px;font-weight:400;color:var(--text-dim);margin-left:6px;font-style:normal}
+/* Stage condition pill — same look as Swimlanes' .lv-stage-cond, sized up to match. */
+#tp-tmap2 .tm2-band-cond{font-size:11px;font-weight:700;color:var(--warning-text-muted);background:var(--warning-soft);border:1px solid var(--warning-border);padding:3px 9px;border-radius:9999px;line-height:1.35;letter-spacing:.02em;font-style:normal;max-width:100%;text-align:left;white-space:normal;word-break:break-word;cursor:help;pointer-events:auto}
+/* Conditional parent stage gets a warm tint + border; child (sub-workflow) bands keep
+   their BP accent color, so only tint cond-stages that are NOT child bands. */
+#tp-tmap2 .tm2-band.tm2-band-cond-stage:not(.tm2-band-child){fill:color-mix(in srgb,var(--warning-soft) 45%,var(--surface));stroke:var(--warning-border)}
 #tp-tmap2 .tm2-edge{fill:none;transition:opacity .15s}
-#tp-tmap2 .tm2-edge-task{stroke:var(--neutral-solid);stroke-width:1.75;stroke-dasharray:4 3;opacity:.7}
-#tp-tmap2 .tm2-edge-child{stroke:var(--agent-pill-text);stroke-width:2;stroke-dasharray:5 3;opacity:.85}
-#tp-tmap2 .tm2-edge-df{stroke:var(--green);stroke-width:1.5;stroke-dasharray:2 3;opacity:.7}
+#tp-tmap2 .tm2-edge-task{stroke:var(--edge-task);stroke-width:var(--edge-task-w);stroke-dasharray:var(--edge-task-dash);opacity:var(--edge-task-op)}
+#tp-tmap2 .tm2-edge-child{stroke:var(--edge-linked);stroke-width:var(--edge-linked-w);stroke-dasharray:var(--edge-linked-dash);opacity:var(--edge-linked-op)}
+#tp-tmap2 .tm2-edge-df{stroke:var(--edge-df);stroke-width:var(--edge-df-w);stroke-dasharray:var(--edge-df-dash);opacity:var(--edge-df-op)}
 /* selection: highlighted edges pop, others dim */
 #tp-tmap2 .tm2-edge.tm2-edge-hi{opacity:1;stroke-width:2.5}
 #tp-tmap2 .tm2-edge.tm2-edge-dim{opacity:.12}
@@ -578,11 +690,13 @@ a.jump:hover{text-decoration:underline}
 #tp-lane .lv-grid-wrap{position:relative;display:inline-block;min-width:100%}
 .lane-grid{display:grid;position:relative;background:var(--bg);gap:24px 28px;padding:0 0 16px 0}
 .lane-grid .lane-corner{grid-column:1;grid-row:1;background:transparent;position:sticky;top:0;left:0;z-index:30;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-placeholder);text-align:center;line-height:1.2}
-.lane-grid .lane-stage-h{background:linear-gradient(to bottom,var(--surface),color-mix(in srgb,var(--accent) 6%,var(--surface)));border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;font-weight:700;color:var(--text);display:flex;flex-direction:column;justify-content:flex-start;line-height:1.3;overflow:hidden;gap:6px;box-shadow:0 1px 2px color-mix(in srgb,var(--text) 6%,transparent)}
+.lane-grid .lane-stage-h{background:linear-gradient(to bottom,var(--surface),color-mix(in srgb,var(--accent) 6%,var(--surface)));border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-weight:700;color:var(--text);display:flex;flex-direction:column;justify-content:flex-start;line-height:1.3;overflow:hidden;gap:6px;box-shadow:0 1px 2px color-mix(in srgb,var(--text) 6%,transparent)}
 .lane-grid .lane-stage-h.has-cond{border-color:var(--warning-border);background:color-mix(in srgb,var(--warning-soft) 35%,var(--surface))}
-.lane-grid .lane-stage-h .lv-stage-name{font-weight:600;color:var(--text);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Stage title: 14px/600 to match Task Map's band label — the Swimlanes view opens at 1:1
+   so this renders full-size. No line-clamp: the full stage name shows (header grows). */
+.lane-grid .lane-stage-h .lv-stage-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.3}
 .lane-grid .lane-stage-h .lv-stage-num{color:var(--accent);font-weight:700;margin-right:3px;font-variant-numeric:tabular-nums}
-.lane-grid .lane-stage-h .lv-stage-cond{font-size:10px;font-weight:700;color:var(--warning-text-muted);background:var(--warning-border);border:1px solid color-mix(in srgb,var(--warning-text-muted) 35%,transparent);padding:3px 8px;border-radius:9999px;line-height:1.3;letter-spacing:.02em;cursor:help;font-style:normal;align-self:flex-start;max-width:100%;text-align:left;white-space:normal;word-break:break-word}
+.lane-grid .lane-stage-h .lv-stage-cond{font-size:11px;font-weight:700;color:var(--warning-text-muted);background:var(--warning-border);border:1px solid color-mix(in srgb,var(--warning-text-muted) 35%,transparent);padding:3px 9px;border-radius:9999px;line-height:1.35;letter-spacing:.02em;cursor:help;font-style:normal;align-self:flex-start;max-width:100%;text-align:left;white-space:normal;word-break:break-word}
 .lane-grid.lane-h .lane-stage-h{position:sticky;top:0;z-index:20}
 .lane-grid.lane-v .lane-stage-h{position:sticky;left:0;z-index:20}
 .lane-grid .lane-stage-h.depth-1{padding-left:18px}
@@ -601,26 +715,33 @@ a.jump:hover{text-decoration:underline}
    body region only; empty content => contributes 0 to track sizing (no scrollWidth
    inflation, no implicit tracks). Sits below cells (z1) and edges (z5). */
 .lane-grid .lv-body-bg{grid-column:2/-1;grid-row:2/-1;background:var(--surface2);border-radius:var(--radius-md);z-index:0;pointer-events:none}
-.lane-grid .lane-cell{background:transparent;border:1px dashed color-mix(in srgb,var(--border) 60%,transparent);border-radius:var(--radius-sm);padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0;align-content:flex-start;position:relative;z-index:1}
+/* Lane cells carry a colored LEFT-ACCENT bar (inset box-shadow, so it layers over the
+   border/background and shows even on EMPTY cells) plus a per-lane background tint, so
+   each lane reads as a continuous horizontal band — human vs agents vs automations vs
+   linked are distinguishable at a glance. The default (human) lane gets a neutral-grey
+   accent + a faint warm-white tint to set it clearly apart from the slate automations. */
+.lane-grid .lane-cell{background:color-mix(in srgb,var(--surface) 92%,var(--bg));border:1px dashed color-mix(in srgb,var(--border) 60%,transparent);border-radius:var(--radius-sm);padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0;align-content:flex-start;position:relative;z-index:1;box-shadow:inset 3px 0 0 color-mix(in srgb,var(--neutral-solid) 45%,transparent)}
 .lane-grid .lane-cell.lane-cell-empty{background:repeating-linear-gradient(45deg,transparent 0 7px,color-mix(in srgb,var(--neutral-soft) 45%,transparent) 7px 8px)}
-.lane-grid .lane-cell.depth-1{--lv-bp:var(--agent-pill-text);background-color:color-mix(in srgb,var(--lv-bp) 4%,transparent);border-style:dashed;border-color:color-mix(in srgb,var(--lv-bp) 35%,transparent)}
-.lane-grid .lane-cell.depth-2{--lv-bp:var(--agent-pill-text);background-color:color-mix(in srgb,var(--lv-bp) 7%,transparent);border-style:dashed;border-color:color-mix(in srgb,var(--lv-bp) 45%,transparent)}
-.lane-grid .lane-cell.lane-cell-agents{background-color:var(--agent-pill-bg);border-color:rgba(124,58,237,.25)}
+.lane-grid .lane-cell.depth-1{--lv-bp:var(--agent-pill-text);background-color:color-mix(in srgb,var(--lv-bp) 4%,transparent);border-style:dashed;border-color:color-mix(in srgb,var(--lv-bp) 35%,transparent);box-shadow:inset 3px 0 0 color-mix(in srgb,var(--lv-bp) 55%,transparent)}
+.lane-grid .lane-cell.depth-2{--lv-bp:var(--agent-pill-text);background-color:color-mix(in srgb,var(--lv-bp) 7%,transparent);border-style:dashed;border-color:color-mix(in srgb,var(--lv-bp) 45%,transparent);box-shadow:inset 3px 0 0 color-mix(in srgb,var(--lv-bp) 70%,transparent)}
+/* AI Agents lane — purple family. */
+.lane-grid .lane-cell.lane-cell-agents{background-color:color-mix(in srgb,var(--agent-pill-bg) 85%,var(--surface));border-color:rgba(124,58,237,.25);box-shadow:inset 3px 0 0 var(--agent-pill-text)}
 .lane-grid .lane-cell.lane-cell-agents.lane-cell-empty{background:repeating-linear-gradient(45deg,var(--agent-pill-bg) 0 6px,rgba(124,58,237,.12) 6px 7px)}
 /* Automations lane — system/integration work (Apigee, email pushes). Uses the
-   neutral/slate family so it reads as "machine, not person, not AI agent". */
+   neutral/slate family so it reads as "machine, not person, not AI agent". A stronger
+   slate tint + darker neutral accent set it apart from the warm-white human lane. */
 .lane-grid .lane-row-h.lane-row-auto{color:var(--text-dim);background:var(--neutral-soft);border-color:var(--neutral-solid)}
-.lane-grid .lane-cell.lane-cell-auto{background-color:color-mix(in srgb,var(--neutral-soft) 70%,transparent);border-color:color-mix(in srgb,var(--neutral-solid) 35%,transparent)}
-.lane-grid .lane-cell.lane-cell-auto.lane-cell-empty{background:repeating-linear-gradient(45deg,transparent 0 6px,color-mix(in srgb,var(--neutral-soft) 70%,transparent) 6px 7px)}
+.lane-grid .lane-cell.lane-cell-auto{background-color:color-mix(in srgb,var(--neutral-soft) 92%,var(--surface));border-color:color-mix(in srgb,var(--neutral-solid) 35%,transparent);box-shadow:inset 3px 0 0 var(--neutral-solid)}
+.lane-grid .lane-cell.lane-cell-auto.lane-cell-empty{background:repeating-linear-gradient(45deg,transparent 0 6px,color-mix(in srgb,var(--neutral-soft) 85%,transparent) 6px 7px)}
 /* Linked Workflows lane — holds sub-workflow invocation cards (Full Process OFF).
    Uses the purple "linked" family so it pairs with child stage columns + cards. */
 .lane-grid .lane-row-h.lane-row-linked{color:var(--agent-pill-text);background:var(--agent-pill-bg);border-color:var(--agent-pill-text);border-style:dashed}
-.lane-grid .lane-cell.lane-cell-linked{background-color:color-mix(in srgb,var(--agent-pill-bg) 60%,transparent);border-color:color-mix(in srgb,var(--agent-pill-text) 30%,transparent)}
+.lane-grid .lane-cell.lane-cell-linked{background-color:color-mix(in srgb,var(--agent-pill-bg) 60%,transparent);border-color:color-mix(in srgb,var(--agent-pill-text) 30%,transparent);box-shadow:inset 3px 0 0 var(--agent-pill-text)}
 .lane-grid .lane-cell.lane-cell-linked.lane-cell-empty{background:repeating-linear-gradient(45deg,transparent 0 6px,color-mix(in srgb,var(--agent-pill-bg) 70%,transparent) 6px 7px)}
 
-.lane-grid .lv-card{padding:7px 9px;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:none;margin:0;border-left:3px solid var(--accent);display:flex;flex-direction:column;gap:3px;transition:all .15s}
+.lane-grid .lv-card{padding:7px 9px;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:var(--card-radius);box-shadow:none;margin:0;border-left:var(--card-accent-w) solid var(--edge-seq);display:flex;flex-direction:column;gap:3px;transition:all .15s}
 .lane-grid .lv-card:hover{border-color:var(--neutral-solid);box-shadow:var(--shadow-card)}
-.lane-grid .lv-card[data-agent]:not([data-agent="human"]){border-left-color:var(--agent-pill-text)}
+.lane-grid .lv-card[data-agent]:not([data-agent="human"]){border-left-color:var(--edge-linked)}
 /* Linked-workflow task cards (Full Process ON): dashed purple border + a tint that
    deepens by nesting depth (child → grandchild → deeper). Marks provenance while
    the lane still says who does the work. Keeps the purple LEFT bar so agent vs
@@ -671,11 +792,11 @@ a.jump:hover{text-decoration:underline}
 
 .lane-edges{position:absolute;left:0;top:0;pointer-events:none;z-index:5;overflow:visible}
 .lane-edges .lv-edge{fill:none}
-.lane-edges .lv-edge-stage{stroke:var(--accent);stroke-width:2.25;opacity:.92}
-.lane-edges .lv-edge-task{stroke:var(--neutral-solid);stroke-width:1.5;stroke-dasharray:4 3;opacity:.55;transition:opacity .15s}
+.lane-edges .lv-edge-stage{stroke:var(--edge-seq);stroke-width:var(--edge-seq-w);opacity:var(--edge-seq-op)}
+.lane-edges .lv-edge-task{stroke:var(--edge-task);stroke-width:var(--edge-task-w);stroke-dasharray:var(--edge-task-dash);opacity:var(--edge-task-op);transition:opacity .15s}
 .lane-edges .lv-edge-task.lv-edge-rel{opacity:.95}
-.lane-edges .lv-edge-child{stroke:var(--agent-pill-text);stroke-width:1.75;stroke-dasharray:5 3;opacity:.85}
-.lane-edges .lv-edge-df{stroke:var(--green);stroke-width:1.25;stroke-dasharray:2 3;opacity:.6}
+.lane-edges .lv-edge-child{stroke:var(--edge-linked);stroke-width:var(--edge-linked-w);stroke-dasharray:var(--edge-linked-dash);opacity:var(--edge-linked-op)}
+.lane-edges .lv-edge-df{stroke:var(--edge-df);stroke-width:var(--edge-df-w);stroke-dasharray:var(--edge-df-dash);opacity:var(--edge-df-op)}
 /* Cross-boundary data dependency (parent↔sub-workflow): dotted + a circle head,
    signalling a field association across workflows rather than an ordered handoff. */
 .lane-edges .lv-edge-df-cross{stroke:var(--green);stroke-width:1.5;stroke-dasharray:1 4;stroke-linecap:round;opacity:.75}
@@ -729,6 +850,49 @@ a.jump:hover{text-decoration:underline}
 /* Sequence number badge on cards inside a multi-task cell */
 .lane-grid .lv-card .lv-seq{display:inline-flex;align-items:center;justify-content:center;height:16px;padding:0 6px;border-radius:9px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;flex-shrink:0;letter-spacing:.2px;font-variant-numeric:tabular-nums}
 
+/* ============================================================
+   PDF EXPORT (print). Each view's "Export PDF" button sets a
+   body class (printing-map / printing-tmap2 / printing-lane),
+   resets that view's zoom/transform to natural 1:1, expands the
+   scroll container so the WHOLE diagram lays out, then calls
+   window.print(). On afterprint the class is removed and zoom
+   restored. No external libraries — the browser's native
+   "Save as PDF" handles pagination/orientation.
+   ============================================================ */
+@media print{
+  /* Hide all app chrome — only the diagram should print. */
+  #app-header,#search-bar,.tabs-bar,#side-panel,#tooltip,
+  .lv-toolbar,.graph-toolbar,.sv-legend,#lv-field-legend,#tm2-field-legend,
+  .theme-switch-cell,.theme-switch{display:none!important}
+  /* Neutralize the app's fixed-height flex shell so content flows onto pages. */
+  html,body{height:auto!important;overflow:visible!important;background:#fff!important;color:#000!important}
+  #detailed-view,.view-mode{height:auto!important;overflow:visible!important;display:block!important}
+  /* Hide every tab panel; the active export class re-shows just one. */
+  body[class*="printing-"] .tab-panel{display:none!important}
+  /* Drop shadows/zoom so vector output is crisp. */
+  body[class*="printing-"] *{box-shadow:none!important}
+  /* NOTE: @page size is injected dynamically per-export (#pdf-page-style) to match the
+     diagram's full natural dimensions, so the WHOLE map lands on ONE page instead of
+     Chrome slicing a wide diagram across many letter-sized sheets. */
+
+  /* --- Stage Map --- */
+  body.printing-map #tp-map{display:block!important;height:auto!important;overflow:visible!important;position:static!important}
+  body.printing-map #simple-svg{width:100%!important;height:auto!important;overflow:visible!important;background:#fff!important}
+
+  /* --- Task Map --- */
+  body.printing-tmap2 #tp-tmap2{display:block!important;height:auto!important;overflow:visible!important}
+  body.printing-tmap2 #tp-tmap2 .tm2-scroll{overflow:visible!important;height:auto!important;width:auto!important}
+  body.printing-tmap2 #tp-tmap2 .tm2-svg-wrap{transform:none!important;transform-origin:top left!important;padding-right:0!important}
+  body.printing-tmap2 #tm2-svg{max-width:none!important;height:auto!important}
+
+  /* --- Swimlanes --- */
+  body.printing-lane #tp-lane{display:block!important;height:auto!important;overflow:visible!important}
+  body.printing-lane #tp-lane .lv-scroll{overflow:visible!important;height:auto!important;max-height:none!important}
+  body.printing-lane #tp-lane .lv-grid-wrap{zoom:1!important}
+}
+/* Export PDF button — matches the other toolbar buttons (screen only). */
+.lv-btn.lv-btn-pdf,.graph-toolbar button.btn-pdf{}
+
 </style>
 </head>
 <body>
@@ -763,10 +927,11 @@ a.jump:hover{text-decoration:underline}
         <button class="lv-btn lv-orient-btn" id="sv-orient-v" onclick="setSimpleOrient('v')" title="Vertical: top to bottom">Vertical</button>
       </div>
       <label class="fp-toggle"><input type="checkbox" id="sv-df-toggle" onchange="toggleSimpleDataFlow()"><span class="fp-slider"></span><span>Data Flow</span></label>
+      <button onclick="exportViewPDF('map')" title="Export this diagram as PDF">Export PDF</button>
       <button id="btn-back-parent" style="display:none;background:var(--subprocess-bg);border-color:var(--subprocess);color:var(--subprocess-text)" onclick="simpleBackToParent()">&larr; Back to Parent</button>
       <span class="graph-note" id="graph-note">{{GRAPH_NOTE}}</span>
     </div>
-    <svg id="simple-svg"><defs><marker id="arr-seq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="#5d656c"/></marker><marker id="arr-cross" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="#7c3aed"/></marker></defs><g id="simple-g"></g></svg>
+    <svg id="simple-svg"><defs><marker id="arr-seq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="var(--edge-seq)"/></marker><marker id="arr-cross" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9 z" fill="var(--edge-linked)"/></marker></defs><g id="simple-g"></g></svg>
     <div class="sv-legend" id="sv-legend"></div>
   </div>
   <div class="tab-panel" data-tab="stageflow" id="tp-stageflow"></div>
@@ -1682,7 +1847,7 @@ function renderFullProcessGraph(){
     var d=pdgEdgePath(e[0],e[1]);
     if(!d)return;
     g.append('path').attr('d',d)
-      .attr('fill','none').attr('stroke',cssVar('--text-dim')).attr('stroke-width',1.75).attr('opacity',.7)
+      .attr('fill','none').attr('stroke',cssVar('--edge-seq')).attr('stroke-width',cssVar('--edge-seq-w')).attr('opacity',cssVar('--edge-seq-op'))
       .attr('marker-end','url(#arr-seq)');
   });
   // Child stage flow edges — render dagre's ROUTED polyline points (same as the
@@ -1698,7 +1863,7 @@ function renderFullProcessGraph(){
       var d='M'+(offX+ed.points[0].x)+','+(offY+ed.points[0].y);
       for(var i=1;i<ed.points.length;i++)d+=' L'+(offX+ed.points[i].x)+','+(offY+ed.points[i].y);
       childEdgeG.append('path').attr('d',d)
-        .attr('fill','none').attr('stroke',cssVar('--text-dim')).attr('stroke-width',1.75).attr('opacity',.7)
+        .attr('fill','none').attr('stroke',cssVar('--edge-seq')).attr('stroke-width',cssVar('--edge-seq-w')).attr('opacity',cssVar('--edge-seq-op'))
         .attr('marker-end','url(#arr-seq)');
     });
     cl.subClusters.forEach(function(sc){drawChildFlowEdges(sc.ci)});
@@ -1782,11 +1947,11 @@ function renderSimpleGraph(sList,flowEdges,isChild){
     for(var i=1;i<pts.length;i++)d+=' L'+pts[i].x+','+pts[i].y;
     var isCrossEdge=e.w.indexOf('child_')===0||e.v.indexOf('child_')===0||(e.v.indexOf('sC')===0)!==(e.w.indexOf('sC')===0);
     ag.append('path').attr('d',d).attr('fill','none')
-      .attr('stroke',isCrossEdge?cssVar('--agent-pill-text'):cssVar('--text-dim'))
-      .attr('stroke-width',isCrossEdge?2:1.75)
-      .attr('opacity',isCrossEdge?.85:.7)
+      .attr('stroke',isCrossEdge?cssVar('--edge-linked'):cssVar('--edge-seq'))
+      .attr('stroke-width',isCrossEdge?cssVar('--edge-linked-w'):cssVar('--edge-seq-w'))
+      .attr('opacity',isCrossEdge?cssVar('--edge-linked-op'):cssVar('--edge-seq-op'))
       .attr('stroke-dasharray',isCrossEdge?'5 3':null)
-      .attr('marker-end','url(#arr-seq)');
+      .attr('marker-end',isCrossEdge?'url(#arr-cross)':'url(#arr-seq)');
   });
   // Draw stage nodes
   var ng=g.append('g');
@@ -1904,9 +2069,9 @@ function drawSimpleDataFlow(){
       if(Math.abs(dx)<10)path='M'+x1+','+y1+' L'+x2+','+y2;
       else{var cp1y=y1+dy*.3,cp2y=y1+dy*.7;path='M'+x1+','+y1+' C'+x1+','+cp1y+' '+x2+','+cp2y+' '+x2+','+y2;}
     }
-    dfg.append('path').attr('d',path).attr('fill','none').attr('stroke','#10b981').attr('stroke-width',1.5).attr('opacity',.5).attr('stroke-dasharray','3 2');
+    dfg.append('path').attr('d',path).attr('fill','none').attr('stroke',cssVar('--edge-df')).attr('stroke-width',cssVar('--edge-df-w')).attr('opacity',cssVar('--edge-df-op')).attr('stroke-dasharray','2 3');
     var lx=(x1+x2)/2,ly=(y1+y2)/2;
-    if(e.count>0)dfg.append('text').attr('x',lx).attr('y',ly-4).attr('text-anchor','middle').attr('font-size','9px').attr('fill','#10b981').attr('font-weight','600').text(e.count+' field'+(e.count!==1?'s':''));
+    if(e.count>0)dfg.append('text').attr('x',lx).attr('y',ly-4).attr('text-anchor','middle').attr('font-size','9px').attr('fill',cssVar('--edge-df')).attr('font-weight','600').text(e.count+' field'+(e.count!==1?'s':''));
   });
 }
 
@@ -2165,27 +2330,37 @@ function renderProcessCanvas(){
   }
 }
 
+// "Starts ..." label for a stage header, phrased like the real Regrello app.
+// Conditions take precedence (they're the meaningful trigger); otherwise fall
+// back to the workflow-start / after-previous trigger text.
+function sfStartsLabel(s){
+  if(s.condition){
+    var n=String(s.condition).split(/\bAND\b|\bOR\b/i).filter(function(x){return x.trim()}).length;
+    return{cls:'sf-stage-cond',html:'Starts when '+n+' condition'+(n!==1?'s are':' is')+' met',title:String(s.condition)};
+  }
+  var tg=s.trigger||'';
+  if(/workflow start/i.test(tg))return{cls:'sf-stage-trigger',html:'Starts <span class="sf-trig-strong">when the workflow starts</span>'};
+  var m=tg.match(/^After (.+) completes?$/i);
+  if(m)return{cls:'sf-stage-trigger',html:'Starts after <span class="sf-trig-strong">'+escHtml(m[1])+'</span>'};
+  if(tg)return{cls:'sf-stage-trigger',html:'Starts <span class="sf-trig-strong">'+escHtml(tg)+'</span>'};
+  return null;
+}
 function renderStageBox(s,isChildStage){
-  var displayId=typeof s.id==='string'?s.id.replace('C',''):s.id;
-  var badgeBg=isChildStage?cssVar('--agent-pill-text'):cssVar('--neutral-solid');
   var childCls=isChildStage?' child-stage':'';
+  var starts=sfStartsLabel(s);
+  var startsHtml=starts?'<div class="'+starts.cls+'"'+(starts.title?' title="'+escHtml(starts.title)+'"':'')+'>'+starts.html+'</div>':'';
   if(!s.tasks.length){
     var h='<div class="sf-gate-box'+childCls+'" data-sid="'+s.id+'">';
-    h+='<span class="sf-stage-badge" style="background:'+badgeBg+'">'+displayId+'</span>';
-    h+='<div class="sf-gate-box-name">'+s.name+'</div>';
-    if(s.trigger)h+='<div class="sf-stage-trigger">'+s.trigger+'</div>';
-    if(s.condition)h+='<div class="sf-stage-cond">IF: '+s.condition+'</div>';
+    h+='<div class="sf-stage-box-hdr">';
+    h+='<div class="sf-gate-box-name" style="flex:1">'+escHtml(s.name)+'</div>'+startsHtml;
+    h+='</div>';
     h+='<div class="sf-gate-box-msg">Gate / Review &mdash; no automated tasks</div>';
     h+='</div>';
     return h;
   }
   var h='<div class="sf-stage-box'+childCls+'" data-sid="'+s.id+'">';
   h+='<div class="sf-stage-box-hdr">';
-  h+='<span class="sf-stage-badge" style="background:'+badgeBg+'">'+displayId+'</span>';
-  h+='<div style="flex:1"><div class="sf-stage-label">'+s.name+'</div>';
-  if(s.trigger)h+='<div class="sf-stage-trigger">'+s.trigger+'</div>';
-  if(s.condition)h+='<div class="sf-stage-cond">IF: '+s.condition+'</div>';
-  h+='</div>';
+  h+='<div class="sf-stage-label">'+escHtml(s.name)+'</div>'+startsHtml;
   h+='</div>';
   h+='<div class="sf-stage-body">';
   s.tasks.forEach(function(t){
@@ -2197,12 +2372,31 @@ function renderStageBox(s,isChildStage){
   return h;
 }
 
+// "Time to complete" label from dueSec, phrased like the real app.
+function sfDurLabel(sec){
+  if(!sec)return'';
+  var dd=Math.floor(sec/86400),hh=Math.floor((sec%86400)/3600),mm=Math.floor((sec%3600)/60);
+  var p=[];if(dd)p.push(dd+' day'+(dd>1?'s':''));if(hh)p.push(hh+' hour'+(hh>1?'s':''));if(mm)p.push(mm+' min');
+  return p.length?p.join(' '):'< 1 min';
+}
 function renderCanvasTaskCard(t){
   var h='<div class="tcard" data-agent="'+t.agentClass+'" data-tid="'+t.id+'">';
   h+='<div class="tcard-head" onclick="sfToggleTask(\''+t.id+'\')">';
-  h+='<span class="tid">'+t.id+'</span><span class="tname">'+t.name+'</span>';
-  h+='<span class="abadge '+badgeCls(t)+'">'+t.agent+'</span>';
-  h+='<span class="expand-i">&#9654;</span></div>';
+  h+='<span class="sf-status-dot"></span>';
+  h+='<span class="tid">'+t.id+'</span><span class="tname">'+escHtml(t.name)+'</span>';
+  h+='<span class="sf-task-right">';
+  // subtle inputs/outputs count hint (full I/O reveals on click)
+  var nin=t.inputs.length,nout=t.outputs.length;
+  if(nin||nout){
+    h+='<span class="sf-io-hint">';
+    if(nin)h+='<span class="sf-io-in">'+nin+' in</span>';
+    if(nout)h+='<span class="sf-io-out">'+nout+' out</span>';
+    h+='</span>';
+  }
+  var dur=sfDurLabel(t.dueSec);
+  if(dur)h+='<span class="sf-task-meta">Time to complete <span class="sf-meta-strong">'+dur+'</span></span>';
+  h+='<span class="abadge '+badgeCls(t)+'">'+escHtml(t.agent)+'</span>';
+  h+='<span class="expand-i">&#9654;</span></span></div>';
   h+='<div class="tdetail" id="sf-td-'+t.id+'">';
   var a=adj[t.id];
   if(a){
@@ -2292,17 +2486,19 @@ function renderChildBpContainer(linkTask,cb){
 
 function sfToggleTask(taskId){
   if(sfTraceField)return;
+  function setOpen(id,on){
+    var td=document.getElementById('sf-td-'+id);if(!td)return;
+    td.classList.toggle('open',on);
+    var head=td.previousElementSibling;
+    if(head){var ic=head.querySelector('.expand-i');if(ic)ic.classList.toggle('open',on);}
+    var row=td.closest('.tcard');if(row)row.classList.toggle('open-row',on);
+  }
   if(sfExpandedTaskId===taskId){
-    var td=document.getElementById('sf-td-'+taskId);
-    if(td){td.classList.remove('open');var ic=td.previousElementSibling.querySelector('.expand-i');if(ic)ic.classList.remove('open')}
+    setOpen(taskId,false);
     sfExpandedTaskId=null;
   }else{
-    if(sfExpandedTaskId){
-      var old=document.getElementById('sf-td-'+sfExpandedTaskId);
-      if(old){old.classList.remove('open');var oi=old.previousElementSibling.querySelector('.expand-i');if(oi)oi.classList.remove('open')}
-    }
-    var td=document.getElementById('sf-td-'+taskId);
-    if(td){td.classList.add('open');var ic=td.previousElementSibling.querySelector('.expand-i');if(ic)ic.classList.add('open')}
+    if(sfExpandedTaskId)setOpen(sfExpandedTaskId,false);
+    setOpen(taskId,true);
     sfExpandedTaskId=taskId;
   }
   renderContextPanel();
@@ -3159,6 +3355,17 @@ function ptFilter(){
 // ==============================================================
 // TAB: FORMS
 // ==============================================================
+var fmSelected=0;        // index of the form shown in the main panel
+var fmSearch='';         // sidebar search query
+function _fmText(form){
+  // searchable blob: form name + section names + field/instruction names
+  var parts=[form.name];
+  (form.sections||[]).forEach(function(s){parts.push(s.name);(s.items||[]).forEach(function(it){
+    if(it.name)parts.push(it.name);
+    if(it.columns)it.columns.forEach(function(c){parts.push(c.name)});
+  })});
+  return parts.join(' ').toLowerCase();
+}
 function renderForms(){
   var el=document.getElementById('tp-forms');
   if(!el)return;
@@ -3166,29 +3373,66 @@ function renderForms(){
     el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-dim)">No forms found in this blueprint.</div>';
     return;
   }
+  if(fmSelected>=formsData.length)fmSelected=0;
   var totalFields=0,totalRules=0;
   formsData.forEach(function(f){totalFields+=f.fieldCount;totalRules+=f.smartRuleCount});
-  var h='<div class="form-toolbar"><span class="form-stats">'+formsData.length+' form'+(formsData.length!==1?'s':'')+' &middot; '+totalFields+' fields';
-  if(totalRules)h+=' &middot; '+totalRules+' smart rule'+(totalRules!==1?'s':'');
-  h+='</span></div>';
+  var h='<div class="fm-layout">';
+  // ---- LEFT: form navigator (search + list) ----
+  h+='<div class="fm-sidebar">';
+  h+='<div class="fm-sb-head"><div class="fm-sb-title">Forms <span class="fm-sb-count">'+formsData.length+'</span></div>';
+  h+='<div class="fm-sb-stats">'+totalFields+' field'+(totalFields!==1?'s':'')+(totalRules?' &middot; '+totalRules+' rule'+(totalRules!==1?'s':''):'')+'</div></div>';
+  if(formsData.length>4)h+='<input class="fm-sb-search" id="fm-search" placeholder="Search forms…" oninput="fmFilter(this.value)" value="'+escHtml(fmSearch)+'">';
+  h+='<div class="fm-sb-list" id="fm-list">';
   formsData.forEach(function(form,fi){
-    h+='<div class="form-card"><div class="form-card-hdr" onclick="toggleFormCard('+fi+')">';
-    h+='<span class="form-expand-i" id="fei-'+fi+'">&#9654;</span>';
-    h+='<span class="form-card-name">'+escHtml(form.name)+'</span>';
-    h+='<div class="form-card-meta">';
-    h+='<span>'+form.sectionCount+' section'+(form.sectionCount!==1?'s':'')+'</span>';
-    h+='<span>'+form.fieldCount+' field'+(form.fieldCount!==1?'s':'')+'</span>';
-    if(form.smartRuleCount)h+='<span style="color:var(--warning-text-muted)">'+form.smartRuleCount+' rule'+(form.smartRuleCount!==1?'s':'')+'</span>';
-    h+='</div><div style="display:flex;flex-wrap:wrap;gap:4px">';
-    form.taskIds.forEach(function(tid,i){
-      h+='<span class="form-task-chip" onclick="event.stopPropagation();switchTab(\'stageflow\')" title="'+escHtml(form.taskNames[i]||'')+'">'+escHtml(tid)+': '+escHtml((form.taskNames[i]||'').substring(0,30))+'</span>';
-    });
-    h+='</div></div>';
-    h+='<div class="form-card-body" id="fcb-'+fi+'">';
-    h+=renderFormSections(form);
+    var sel=fi===fmSelected?' active':'';
+    h+='<div class="fm-sb-item'+sel+'" data-fi="'+fi+'" data-search="'+escHtml(_fmText(form))+'" onclick="fmSelect('+fi+')">';
+    h+='<div class="fm-sb-item-name">'+escHtml(form.name)+'</div>';
+    h+='<div class="fm-sb-item-meta">'+form.sectionCount+' section'+(form.sectionCount!==1?'s':'')+' &middot; '+form.fieldCount+' field'+(form.fieldCount!==1?'s':'');
+    if(form.smartRuleCount)h+=' &middot; <span class="fm-sb-rules">'+form.smartRuleCount+' rule'+(form.smartRuleCount!==1?'s':'')+'</span>';
     h+='</div></div>';
   });
+  h+='</div></div>';
+  // ---- RIGHT: selected form ----
+  h+='<div class="fm-main" id="fm-main">'+renderFormPanel(formsData[fmSelected])+'</div>';
+  h+='</div>';
   el.innerHTML=h;
+  if(fmSearch)fmFilter(fmSearch);
+}
+// Render the large form preview for one form (right panel) framed as an actual
+// form "sheet" — a white bordered document on a gray backdrop, like the real
+// Regrello form preview/configure view.
+function renderFormPanel(form){
+  if(!form)return'';
+  var h='<div class="fm-sheet">';
+  h+='<div class="fm-form-head">';
+  h+='<div class="fm-form-title">'+escHtml(form.name)+'</div>';
+  h+='<div class="fm-form-sub">'+form.sectionCount+' section'+(form.sectionCount!==1?'s':'')+' &middot; '+form.fieldCount+' field'+(form.fieldCount!==1?'s':'')+(form.smartRuleCount?' &middot; '+form.smartRuleCount+' smart rule'+(form.smartRuleCount!==1?'s':''):'')+'</div>';
+  // task chips (where this form is used)
+  if(form.taskIds&&form.taskIds.length){
+    h+='<div class="fm-form-tasks">';
+    form.taskIds.forEach(function(tid,i){
+      h+='<span class="form-task-chip" onclick="switchTab(\'stageflow\')" title="'+escHtml(form.taskNames[i]||'')+'">'+escHtml(tid)+': '+escHtml((form.taskNames[i]||'').substring(0,32))+'</span>';
+    });
+    h+='</div>';
+  }
+  h+='</div>';
+  h+='<div class="fm-form-body">'+renderFormSections(form)+'</div>';
+  h+='</div>';
+  return h;
+}
+function fmSelect(fi){
+  if(fi===fmSelected)return;
+  fmSelected=fi;
+  document.querySelectorAll('#fm-list .fm-sb-item').forEach(function(it){it.classList.toggle('active',+it.dataset.fi===fi)});
+  var main=document.getElementById('fm-main');
+  if(main){main.innerHTML=renderFormPanel(formsData[fi]);main.scrollTop=0}
+}
+function fmFilter(q){
+  fmSearch=q;q=(q||'').trim().toLowerCase();
+  document.querySelectorAll('#fm-list .fm-sb-item').forEach(function(it){
+    var match=!q||it.dataset.search.indexOf(q)!==-1;
+    it.style.display=match?'':'none';
+  });
 }
 function toggleFormCard(fi){
   var body=document.getElementById('fcb-'+fi);
@@ -3199,14 +3443,37 @@ function toggleFormCard(fi){
   var hdr=body.previousElementSibling;
   if(hdr)hdr.classList.toggle('open',open);
 }
+// Format a humanized smart-rule string ("Show when \"Field\" equals \"Value\"")
+// the way Regrello's ConstraintRuleBlock reads: bold the rule verb, wrap quoted
+// field names / values as subtle chips, keep operators plain.
+function sfRuleHtml(c){
+  c=String(c);
+  var m=c.match(/^(Show|Hide|Require)\b\s*(.*)$/i);
+  var verb='',rest=c;
+  if(m){verb=m[1];rest=m[2];}
+  // split on quoted segments; quoted = chip, unquoted = plain text
+  var out='',re=/"([^"]*)"/g,last=0,mm;
+  while((mm=re.exec(rest))){
+    out+=escHtml(rest.slice(last,mm.index));
+    out+='<span class="rule-field">'+escHtml(mm[1])+'</span>';
+    last=mm.index+mm[0].length;
+  }
+  out+=escHtml(rest.slice(last));
+  return(verb?'<strong>'+escHtml(verb)+'</strong> ':'')+out;
+}
 function renderFormSections(form){
   var eyeSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
   var h='';
   (form.sections||[]).forEach(function(sec){
     h+='<div class="form-section-block">';
-    h+='<div class="form-section-hdr">'+escHtml(sec.name)+'</div>';
+    // section header mirrors the real form: a muted "not-started" status circle +
+    // the section name (h5), with any description indented under the title.
+    h+='<div class="form-section-hdr"><span class="form-section-dot"></span>';
+    h+='<div class="form-section-titlewrap"><div class="form-section-name">'+escHtml(sec.name)+'</div>';
+    if(sec.description)h+='<div class="form-section-desc">'+escHtml(sec.description)+'</div>';
+    h+='</div></div>';
     if(sec.constraints&&sec.constraints.length){
-      sec.constraints.forEach(function(c){h+='<div class="form-section-rule">'+eyeSvg+' '+escHtml(c)+'</div>'});
+      sec.constraints.forEach(function(c){h+='<div class="form-section-rule">'+eyeSvg+'<span>'+sfRuleHtml(c)+'</span></div>'});
     }
     var instructions=[];var rows=[];
     (sec.items||[]).forEach(function(item){
@@ -3216,32 +3483,45 @@ function renderFormSections(form){
     if(instructions.length){
       instructions.forEach(function(instr){
         if(instr.constraints&&instr.constraints.length){
-          instr.constraints.forEach(function(c){h+='<div class="form-section-rule">'+eyeSvg+' '+escHtml(c)+'</div>'});
+          instr.constraints.forEach(function(c){h+='<div class="form-section-rule">'+eyeSvg+'<span>'+sfRuleHtml(c)+'</span></div>'});
         }
         h+='<div class="form-instruction">'+escHtml(instr.description||instr.name)+'</div>';
       });
     }
     if(rows.length){
-      h+='<div class="form-fields-wrap">';
-      var i=0;
-      while(i<rows.length){
-        var item=rows[i];
-        var next=rows[i+1];
-        var paired=next&&item.col===0&&next.col===1;
-        if(paired){
-          h+='<div class="form-fields-row two-col">';
-          h+=renderFormField(item,eyeSvg);
-          h+=renderFormField(next,eyeSvg);
-          h+='</div>';
-          i+=2;
-        }else{
-          h+='<div class="form-fields-row">';
-          h+=renderFormField(item,eyeSvg);
-          h+='</div>';
-          i++;
+      // Table items (line-item grids) render full-width; plain fields lay out in the
+      // 1/2-column grid. Separate so the column-pairing only sees plain fields.
+      var tables=rows.filter(function(r){return r.type==='table'});
+      var fieldRows=rows.filter(function(r){return r.type!=='table'});
+      // Lay fields out the way Regrello does: items carry a displayColumn (col 0 =
+      // left, 1 = right). Walk in order; a col-0 immediately followed by a col-1 share
+      // one two-column row. A lone col-1 keeps the right column (empty spacer left).
+      // A col-0 with no col-1 partner spans full width. Sections that never use a
+      // right column stay single-column.
+      if(fieldRows.length){
+        var usesCols=fieldRows.some(function(r){return r.col===1});
+        h+='<div class="form-fields-wrap">';
+        var i=0;
+        while(i<fieldRows.length){
+          var item=fieldRows[i];
+          var next=fieldRows[i+1];
+          if(item.col===0&&next&&next.col===1){
+            h+='<div class="form-fields-row two-col">'+renderFormField(item,eyeSvg)+renderFormField(next,eyeSvg)+'</div>';
+            i+=2;
+          }else if(item.col===1&&usesCols){
+            h+='<div class="form-fields-row two-col"><div class="form-field-block form-field-spacer"></div>'+renderFormField(item,eyeSvg)+'</div>';
+            i++;
+          }else if(item.col===0&&usesCols){
+            h+='<div class="form-fields-row two-col">'+renderFormField(item,eyeSvg)+'<div class="form-field-block form-field-spacer"></div></div>';
+            i++;
+          }else{
+            h+='<div class="form-fields-row">'+renderFormField(item,eyeSvg)+'</div>';
+            i++;
+          }
         }
+        h+='</div>';
       }
-      h+='</div>';
+      tables.forEach(function(tb){h+=renderFormTable(tb,eyeSvg)});
     }
     h+='</div>';
   });
@@ -3268,22 +3548,65 @@ function renderFormField(item,eyeSvg){
   else if(isPhone)cls+=' phone';
   else if(isSelect)cls+=' select';
   if(isPrepop&&!isCheckbox)cls+=' prepop';
+  var typeLabel=(item.fieldType&&item.fieldType!=='Unknown')?item.fieldType:'';
+  var vals=item.allowedValues||[];
   var h='<div class="form-field-block">';
-  if(!isCheckbox){
+  if(isCheckbox){
+    // checkbox: box + name inline (the box is drawn by the .checkbox ::before), with
+    // type/required tags trailing.
+    h+='<div class="'+cls+'">'+escHtml(item.name);
+    if(item.isRequired)h+=' <span class="freq" title="Required">*</span>';
+    h+='</div>';
+  }else{
+    // label row: name + required asterisk, then type chip + (pre-filled badge) trailing
+    h+='<div class="form-field-labelrow">';
     h+='<span class="form-field-label">'+escHtml(item.name);
-    if(item.isRequired)h+=' <span class="freq">*</span>';
+    if(item.isRequired)h+=' <span class="freq" title="Required">*</span>';
     h+='</span>';
+    h+='<span class="form-field-tags">';
+    if(typeLabel)h+='<span class="form-type-chip">'+escHtml(typeLabel)+'</span>';
+    if(isPrepop)h+='<span class="form-prefill-chip" title="Pre-populated from an earlier field">Pre-filled</span>';
+    h+='</span></div>';
+    h+='<div class="'+cls+'">';
+    if(isDoc)h+='Click or drop to attach documents';
+    else if(isSignature)h+='<span class="sig-text">Sign here</span>';
+    else if(isDate&&!isPrepop)h+='mm / dd / yyyy';
+    else if(isPrepop)h+='Pre-populated';
+    else if(isSelect&&vals.length)h+='<span class="form-select-ph">Select…</span>';
+    h+='</div>';
   }
-  h+='<div class="'+cls+'">';
-  if(isCheckbox)h+=escHtml(item.name);
-  else if(isDoc)h+='Click or drop to attach documents';
-  else if(isSignature)h+='<span class="sig-text">Sign here</span>';
-  else if(isDate&&!isPrepop)h+='mm / dd / yyyy';
-  else if(isPrepop)h+='Pre-populated';
-  h+='</div>';
+  // allowed-values preview (dropdown options) — show the choices as small chips
+  if(isSelect&&vals.length){
+    h+='<div class="form-field-options">';
+    var shown=vals.slice(0,8);
+    shown.forEach(function(v){h+='<span class="form-opt-chip">'+escHtml(String(v))+'</span>'});
+    if(vals.length>shown.length)h+='<span class="form-opt-more">+'+(vals.length-shown.length)+' more</span>';
+    h+='</div>';
+  }
   if(item.constraints&&item.constraints.length){
-    item.constraints.forEach(function(c){h+='<div class="form-field-rule">'+eyeSvg+' '+escHtml(c)+'</div>'});
+    item.constraints.forEach(function(c){h+='<div class="form-field-rule">'+eyeSvg+'<span>'+sfRuleHtml(c)+'</span></div>'});
   }
+  h+='</div>';
+  return h;
+}
+// Table form (line-item grid): columns = the table's fields; render a header row of
+// column names + one empty placeholder data row (the real app shows a fillable grid).
+function renderFormTable(tb,eyeSvg){
+  var cols=tb.columns||[];
+  var h='<div class="form-table-wrap">';
+  if(tb.description)h+='<div class="form-instruction">'+escHtml(tb.description)+'</div>';
+  h+='<div class="form-table-scroll"><table class="form-table"><thead><tr><th class="form-table-rownum">#</th>';
+  cols.forEach(function(c){
+    h+='<th>'+escHtml(c.name)+(c.isRequired?' <span class="freq">*</span>':'')+'</th>';
+  });
+  h+='</tr></thead><tbody>';
+  // one placeholder row to convey it's a fillable grid
+  h+='<tr><td class="form-table-rownum">1</td>';
+  cols.forEach(function(){h+='<td><span class="form-table-cell"></span></td>'});
+  h+='</tr></tbody></table></div>';
+  // any column-level smart rules
+  var rules=[];cols.forEach(function(c){(c.constraints||[]).forEach(function(r){rules.push({col:c.name,r:r})})});
+  rules.forEach(function(x){h+='<div class="form-field-rule">'+eyeSvg+'<span><span class="rule-field">'+escHtml(x.col)+'</span> &middot; '+sfRuleHtml(x.r)+'</span></div>'});
   h+='</div>';
   return h;
 }
@@ -3506,12 +3829,12 @@ function renderLaneView(force){
   h+='<button class="lv-btn lv-orient-btn'+(!isH?' active':'')+'" onclick="lvSetOrient(\'v\')" title="Vertical: lanes are columns">Vertical</button>';
   h+='</div>';
   h+='<label class="fp-toggle"><input type="checkbox" id="lv-df-toggle"'+(lvShowDataFlow?' checked':'')+' onchange="lvToggleDataFlow()"><span class="fp-slider"></span><span>Data Flow</span></label>';
+  h+='<button class="lv-btn" onclick="exportViewPDF(\'lane\')" title="Export this diagram as PDF">Export PDF</button>';
   // (Field-trace clearing lives on the floating field legend's own Clear button,
   // which updates live without a re-render — no stale toolbar button.)
   h+='<div class="lv-legend">';
   h+='<span class="lv-legend-item"><span class="lv-legend-line lv-legend-stage"></span>Stage sequence</span>';
   h+='<span class="lv-legend-item"><span class="lv-legend-line lv-legend-task"></span>Task sequence</span>';
-  h+='<span class="lv-legend-item"><span class="lv-legend-line lv-legend-child"></span>Linked workflow</span>';
   if(lvShowDataFlow){
     h+='<span class="lv-legend-item"><span class="lv-legend-line lv-legend-df"></span>Data flow</span>';
     if(childBlueprints.length)h+='<span class="lv-legend-item" title="Field shared between the main workflow and a sub-workflow. Direction is by field identity, not execution order."><span class="lv-legend-line lv-legend-df-cross"></span>Cross-workflow data</span>';
@@ -3546,7 +3869,10 @@ function renderLaneView(force){
     var condHtml='';
     if(c.stage&&c.stage.condition){
       var fullCond=String(c.stage.condition).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
-      var lines=summarizeConditionLines(c.stage.condition,40,2);
+      // Show the FULL condition (no truncation) — wrap into as many lines as needed.
+      // maxLines is large so the truncate-last-line branch never fires; the pill grows
+      // vertically (white-space:normal). Matches Stage Map, which already shows full text.
+      var lines=summarizeConditionLines(c.stage.condition,44,99);
       condHtml='<div class="lv-stage-cond" title="'+escHtml(fullCond)+'">'+lines.map(escHtml).join('<br>')+'</div>';
     }
     var stageNum=c.stage.id!=null?String(c.stage.id)+'. ':'';
@@ -3610,8 +3936,8 @@ function renderLaneView(force){
   // Edge overlay sits inside the wrap so it scrolls/sizes with the grid
   h+='<svg class="lane-edges" id="lv-edges"><defs>';
   h+='<marker id="lv-arr-stage" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>';
-  h+='<marker id="lv-arr-task" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--neutral-solid)"/></marker>';
-  h+='<marker id="lv-arr-child" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--agent-pill-text)"/></marker>';
+  h+='<marker id="lv-arr-task" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="4.8" markerHeight="4.8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--neutral-solid)"/></marker>';
+  h+='<marker id="lv-arr-child" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="4.8" markerHeight="4.8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--agent-pill-text)"/></marker>';
   h+='<marker id="lv-arr-df" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--green)"/></marker>';
   h+='<marker id="lv-arr-df-cross" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><circle cx="5" cy="5" r="4" fill="var(--green)"/></marker>';
   h+='</defs></svg>';
@@ -3632,19 +3958,18 @@ function renderLaneView(force){
     // #tp-lane), and cap its height to the scroll area. Recomputed on resize below.
     lvPositionFieldLegend();
   }
-  // After layout: auto-fit the grid (so all lanes are visible on Y in horizontal /
-  // X in vertical), then draw edges and apply trace state.
+  // After layout: open at NATURAL 1:1 (readable titles) unless the user has chosen
+  // Fit-to-Screen (lvFitMode), then draw edges and apply trace state.
   requestAnimationFrame(function(){
-    var s=lvComputeFitScale();
-    lvApplyScale(s);
+    if(lvFitMode){var s=lvComputeFitScale();lvApplyScale(s);}else{lvApplyScale(1);}
     requestAnimationFrame(function(){lvDrawEdges();lvApplyTraceClasses()});
   });
-  // Watch for resize — refit whenever the viewport changes
+  // Watch for resize — re-fit only while in Fit mode; at 1:1 a resize just redraws edges.
   if(!lvResizeBound){
     window.addEventListener('resize',function(){
       if(curTab!=='lane')return;
       requestAnimationFrame(function(){
-        var s=lvComputeFitScale();lvApplyScale(s);
+        if(lvFitMode){var s=lvComputeFitScale();lvApplyScale(s);}
         lvPositionFieldLegend();
         requestAnimationFrame(lvDrawEdges);
       });
@@ -3818,16 +4143,54 @@ function lvBuildSequenceEdges(){
   function walkFlow(flow,sList){
     if(!flow)return;
     var byId={};sList.forEach(function(s){byId[s.id]=s});
+    // Forward adjacency over the stage graph (fromStageId -> [toStageId,...]), used to
+    // bridge ACROSS empty middle stages (e.g. a task-less gate stage): when a flow
+    // target has 0 tasks, walk forward to the next non-empty stage(s) so the non-empty
+    // stages on either side stay visually connected instead of orphaned.
+    var nextOf={};
+    flow.forEach(function(e){(nextOf[e[0]]=nextOf[e[0]]||[]).push(e[1])});
+    // Resolve a flow target id to the set of NEAREST non-empty stages reachable by
+    // walking forward through empty (task-less) stages. The shared `seen` set makes
+    // this provably terminating even if the stage graph contains a cycle of empty
+    // stages, and each branch stops descending the moment it hits a non-empty stage.
+    function resolveTargets(startId,seen){
+      var out=[];
+      (function visit(id){
+        if(seen[id])return;seen[id]=1;
+        var s=byId[id];
+        if(s&&s.tasks.length){out.push(s);return;} // nearest non-empty on this branch
+        (nextOf[id]||[]).forEach(visit);            // empty (or unknown) → keep walking
+      })(startId);
+      return out;
+    }
+    // De-dupe across the WHOLE flow for this blueprint, keyed by (terminalTask,entryTask).
+    // Bridging makes it possible for two flow edges (e.g. a diamond A→gate1→C and
+    // A→gate2→C) to resolve to the same source-terminal→target-entry pair; without this
+    // the raw edge list — which is iterated directly when drawing connectors — would
+    // gain a duplicate and paint a doubled arrow.
+    var pushed={};
     flow.forEach(function(e){
-      var from=byId[e[0]],to=byId[e[1]];
-      if(!from||!to||!from.tasks.length||!to.tasks.length)return;
-      // Connect the source stage's TRUE terminal tasks → the target stage's TRUE
-      // entry tasks (dependency-aware), so a branching stage hands off from each of
-      // its real end points into each real start of the next stage.
-      var sf=lvStageTaskFlow(from),tf=lvStageTaskFlow(to);
+      var from=byId[e[0]];
+      // An empty source has no terminal tasks to emit from. The flow edge feeding INTO
+      // this empty stage resolves forward through it (below), so its upstream non-empty
+      // predecessor still bridges across — no handoff is lost.
+      if(!from||!from.tasks.length)return;
+      // Target stage(s): a non-empty e[1] is just [that stage] (original behavior); an
+      // empty e[1] is bridged forward to the next non-empty stage(s).
+      var direct=byId[e[1]];
+      var targets=(direct&&direct.tasks.length)?[direct]:resolveTargets(e[1],{});
+      if(!targets.length)return;
+      // Connect the source stage's TRUE terminal tasks → each resolved target stage's
+      // TRUE entry tasks (dependency-aware), so a branching stage hands off from each of
+      // its real end points into each real start of the next (non-empty) stage.
+      var sf=lvStageTaskFlow(from);
       sf.terminals.forEach(function(ft){
-        tf.entries.forEach(function(en){
-          edges.push({from:ft,to:en,kind:'stage'});
+        targets.forEach(function(to){
+          lvStageTaskFlow(to).entries.forEach(function(en){
+            var k=ft+'␟'+en;
+            if(pushed[k])return;pushed[k]=1;
+            edges.push({from:ft,to:en,kind:'stage'});
+          });
         });
       });
     });
@@ -4067,13 +4430,6 @@ function lvApplyTraceClasses(){
   lvDrawEdges();
 }
 
-function lvCardCenter(tid,gridRect){
-  var el=document.querySelector('#lv-grid .lv-card[data-tid="'+CSS.escape(tid)+'"]');
-  if(!el)return null;
-  var r=el.getBoundingClientRect();
-  return{x:r.left-gridRect.left+r.width/2,y:r.top-gridRect.top+r.height/2,w:r.width,h:r.height,el:el};
-}
-
 // Cached boundaries of the cards area (set at start of lvDrawEdges).
 var lvBodyTopCache=0,lvBodyLeftCache=0;
 function lvBodyTop(){return lvBodyTopCache}
@@ -4180,14 +4536,14 @@ function lvSimplifyPath(d,segClear){
 function lvDrawEdges(){
   var svg=document.getElementById('lv-edges');var grid=document.getElementById('lv-grid');
   if(!svg||!grid)return;
-  // CRITICAL: temporarily clear the wrap's CSS scale transform so DOM measurements
-  // return NATURAL coordinates. The SVG paths then live in the same coordinate
-  // space, and the scale transform on the wrap re-applies uniformly to both
-  // grid + svg at render time. Without this, getBoundingClientRect returns
-  // already-scaled coords which mismatch the SVG viewBox (= "double scaling").
+  // CRITICAL: temporarily clear the wrap's CSS zoom so DOM measurements return NATURAL
+  // coordinates. The SVG paths then live in the same coordinate space, and the zoom on
+  // the wrap re-applies uniformly to both grid + svg at render time. Without this,
+  // getBoundingClientRect returns already-zoomed coords which mismatch the SVG viewBox
+  // (= "double scaling"). (Zoom replaced transform:scale so position:sticky headers work.)
   var wrap=document.querySelector('#tp-lane .lv-grid-wrap');
-  var prevTransform=wrap?wrap.style.transform:'';
-  if(wrap)wrap.style.transform='none';
+  var prevTransform=wrap?wrap.style.zoom:'';
+  if(wrap)wrap.style.zoom='';
   var gr=grid.getBoundingClientRect();
   svg.style.left='0';svg.style.top='0';
   svg.style.width=gr.width+'px';svg.style.height=gr.height+'px';
@@ -4236,19 +4592,27 @@ function lvDrawEdges(){
   //   midKey = target cell's row edge (top in H, left in V) — this is the long horizontal/vertical mid-channel
   //   tgtKey = target cell's column edge (left in H, top in V)
   var srcChanTotal={},midChanTotal={},tgtChanTotal={};
+  // Bucket each cell-border coordinate to a 4px tolerance (round to the nearest
+  // multiple of 4) rather than the nearest whole pixel. getBoundingClientRect returns
+  // sub-pixel coords, and raw Math.round had two failure modes: (1) MERGE — two cells
+  // whose borders differ by <0.5px round to the same key and overlay their parallel
+  // edges; (2) SPLIT — 0.5px jitter on a resize/scroll redraw pushes one logical
+  // channel across a rounding boundary into two keys. A 4px bucket only groups coords
+  // within ±2px; distinct grid tracks are a full column (240px) or body-row min (110px)
+  // apart, so it can't merge separate columns/rows while it absorbs sub-pixel jitter.
   function chanKeys(s,t){
     var sCell=s.cell.getBoundingClientRect(),tCell=t.cell.getBoundingClientRect();
     if(lvOrientation==='h'){
       return{
-        src:'sR'+Math.round(sCell.right),
-        mid:'mY'+Math.round(tCell.top),
-        tgt:'tL'+Math.round(tCell.left)
+        src:'sR'+Math.round(sCell.right/4)*4,
+        mid:'mY'+Math.round(tCell.top/4)*4,
+        tgt:'tL'+Math.round(tCell.left/4)*4
       };
     }else{
       return{
-        src:'sB'+Math.round(sCell.bottom),
-        mid:'mX'+Math.round(tCell.left),
-        tgt:'tT'+Math.round(tCell.top)
+        src:'sB'+Math.round(sCell.bottom/4)*4,
+        mid:'mX'+Math.round(tCell.left/4)*4,
+        tgt:'tT'+Math.round(tCell.top/4)*4
       };
     }
   }
@@ -4317,8 +4681,23 @@ function lvDrawEdges(){
       // lower card, with the same small task arrowhead. (Only consecutive task
       // pairs ever share a cell; stage/child handoffs always cross columns.)
       if(e.kind!=='task')return;
-      var dSame='M'+s.x+' '+(s.y+s.h/2)+' L'+t.x+' '+(t.y-t.h/2);
-      paths.push({d:dSame,cls:'lv-edge lv-edge-task',marker:'url(#lv-arr-task)',from:e.from,to:e.to,kind:'task'});
+      // Straight vertical stub between the two cards — but ONLY if no other card is
+      // stacked between them in this cell. Non-consecutive same-cell pairs (e.g. a skip
+      // over intervening tasks) would slice straight through those cards, so route them
+      // through the obstacle-aware column gutter instead (lvGutterPath handles that).
+      var loY=Math.min(s.y+s.h/2,t.y-t.h/2), hiY=Math.max(s.y+s.h/2,t.y-t.h/2);
+      if(!lvCorridorBlockedV(loY,hiY,s.x,Math.max(s.w,t.w)/2-4,{s:s,t:t})){
+        var dSame='M'+s.x+' '+(s.y+s.h/2)+' L'+t.x+' '+(t.y-t.h/2);
+        paths.push({d:dSame,cls:'lv-edge lv-edge-task',marker:'url(#lv-arr-task)',from:e.from,to:e.to,kind:'task'});
+        return;
+      }
+      var ckSame=chanKeys(s,t);
+      var sameOpts={
+        srcChan:(srcChanSeen[ckSame.src]=(srcChanSeen[ckSame.src]||0)+1)-1,srcChanTotal:srcChanTotal[ckSame.src]||0,
+        midChan:(midChanSeen[ckSame.mid]=(midChanSeen[ckSame.mid]||0)+1)-1,midChanTotal:midChanTotal[ckSame.mid]||0,
+        tgtChan:(tgtChanSeen[ckSame.tgt]=(tgtChanSeen[ckSame.tgt]||0)+1)-1,tgtChanTotal:tgtChanTotal[ckSame.tgt]||0
+      };
+      paths.push({d:lvGutterPath(s,t,sameOpts),cls:'lv-edge lv-edge-task',marker:'url(#lv-arr-task)',from:e.from,to:e.to,kind:'task'});
       return;
     }
 
@@ -4341,7 +4720,12 @@ function lvDrawEdges(){
         midChan:(midChanSeen[ckc.mid]=(midChanSeen[ckc.mid]||0)+1)-1,midChanTotal:midChanTotal[ckc.mid]||0,
         tgtChan:(tgtChanSeen[ckc.tgt]=(tgtChanSeen[ckc.tgt]||0)+1)-1,tgtChanTotal:tgtChanTotal[ckc.tgt]||0
       };
-      paths.push({d:lvGutterPath(s,t,childOpts),cls:'lv-edge lv-edge-child',marker:'url(#lv-arr-child)',from:e.from,to:e.to,kind:'child'});
+      // Render boundary (parent↔sub-workflow) edges with the SAME grey task-flow style
+      // as in-workflow edges — the linked cards already signal provenance via their
+      // colored header/tint, so a distinct purple arrow is redundant. kind stays 'child'
+      // so the Full-Process contraction logic (which drops hidden-source child edges)
+      // is unaffected; only the visual class/marker change.
+      paths.push({d:lvGutterPath(s,t,childOpts),cls:'lv-edge lv-edge-task',marker:'url(#lv-arr-task)',from:e.from,to:e.to,kind:'child'});
       return;
     }
 
@@ -4500,8 +4884,8 @@ function lvDrawEdges(){
     g.appendChild(ttl);
     svg.appendChild(g);
   });
-  // Restore the scale transform we cleared for measurement
-  if(wrap)wrap.style.transform=prevTransform;
+  // Restore the zoom we cleared for measurement
+  if(wrap)wrap.style.zoom=prevTransform;
 }
 
 // Midpoint of an orthogonal polyline 'd' (M x y L x y …) — the vertex nearest the
@@ -4601,33 +4985,43 @@ function lvGutterPath(s,t,opts){
     // target's opposite edge. (Same-lane same-cell pairs are handled earlier.)
     var sameCol=Math.abs(sC.left-tC.left)<2 && Math.abs(sC.right-tC.right)<2;
     if(sameCol){
-      // A straight vertical line down the column center is only safe if the column
-      // center between the two cards is CLEAR. When cards are stacked in the source
-      // or target cell (or a lane between them), the center vertical would cross
-      // them — so route the vertical through the COLUMN GUTTER (the card-free gap
-      // just right of the cells) instead, with the channel offset for parallels.
-      var clearStraight=Math.abs(s.x-t.x)<2 && !srcChanOff &&
-        !lvCorridorBlockedV(t.y>=s.y?(s.y+s.h/2):(s.y-s.h/2), t.y>=s.y?(t.y-t.h/2):(t.y+t.h/2), s.x, Math.max(s.w,t.w)/2-4, {s:s,t:t});
+      // A straight vertical line between the two cards is only safe if the lane span
+      // between them is CLEAR. When cards are stacked in the source or target cell (or
+      // a lane between them), the center vertical would cross them — so route the
+      // vertical through the COLUMN GUTTER (the card-free gap just right of the cells).
+      // The straight line is tested at the OFFSET x (s.x+srcChanOff), so a non-zero
+      // channel offset no longer disqualifies an otherwise-clear straight route — it
+      // just shifts where we test/draw it.
+      var straightX=s.x+(srcChanOff||0);
+      var vy0=t.y>=s.y?(s.y+s.h/2):(s.y-s.h/2), vy1=t.y>=s.y?(t.y-t.h/2):(t.y+t.h/2);
+      var clearStraight=Math.abs(straightX-t.x)<2 &&
+        !lvCorridorBlockedV(vy0,vy1,straightX,Math.max(s.w,t.w)/2-4,{s:s,t:t});
       if(clearStraight){
         return t.y>=s.y
-          ? 'M'+s.x+' '+(s.y+s.h/2)+' L'+t.x+' '+(t.y-t.h/2)
-          : 'M'+s.x+' '+(s.y-s.h/2)+' L'+t.x+' '+(t.y+t.h/2);
+          ? 'M'+straightX+' '+(s.y+s.h/2)+' L'+t.x+' '+(t.y-t.h/2)
+          : 'M'+straightX+' '+(s.y-s.h/2)+' L'+t.x+' '+(t.y+t.h/2);
       }
       // Route vertically through the column gutter (right of the cells), card-free.
-      // Clamp into the gap so a large parallel offset can't push it onto the next
-      // column's cards.
-      var gx=Math.max(sC.right+2, Math.min(sC.right + colGap*0.4 + (srcChanOff||0), sC.right+colGap-2));
-      // Re-enter the target on the axis FACING it (vertical), so the arrowhead
-      // points down/up into the top/bottom edge — not sideways. We run the gutter
-      // to a y just shy of the target edge, cross back to the target's x, then a
-      // short vertical stub into the edge (the final segment is vertical).
-      if(t.y>=s.y){ // target below → exit source bottom, run gutter, drop into target TOP
-        var apprY=Math.max((t.y-t.h/2)-Math.min(12,rowGap*0.5), s.y+s.h/2);
-        return'M'+s.x+' '+(s.y+s.h/2)+' L'+gx+' '+(s.y+s.h/2)+' L'+gx+' '+apprY+' L'+t.x+' '+apprY+' L'+t.x+' '+(t.y-t.h/2);
-      }else{ // target above → exit source top, run gutter, rise into target BOTTOM
-        var apprY2=Math.min((t.y+t.h/2)+Math.min(12,rowGap*0.5), s.y-s.h/2);
-        return'M'+s.x+' '+(s.y-s.h/2)+' L'+gx+' '+(s.y-s.h/2)+' L'+gx+' '+apprY2+' L'+t.x+' '+apprY2+' L'+t.x+' '+(t.y+t.h/2);
+      // Search outward from the gap-center for an x where BOTH the gutter vertical and
+      // the horizontal approach leg are obstacle-free; widen by the column gap (and into
+      // the next gaps if needed) so it never clips this or an adjacent column's cards.
+      var below=t.y>=s.y;
+      var sEdgeY=below?(s.y+s.h/2):(s.y-s.h/2);
+      var apprY=below?Math.max((t.y-t.h/2)-Math.min(12,rowGap*0.5), s.y+s.h/2)
+                     :Math.min((t.y+t.h/2)+Math.min(12,rowGap*0.5), s.y-s.h/2);
+      var gx=sC.right+colGap*0.4+(srcChanOff||0);
+      var vLo=Math.min(sEdgeY,apprY), vHi=Math.max(sEdgeY,apprY);
+      for(var gi=0;gi<6;gi++){
+        var cand=Math.max(sC.right+2, Math.min(gx+gi*colGap, sC.right+colGap*(gi+1)-2));
+        var vBlocked=lvCorridorBlockedV(vLo,vHi,cand,3,{s:s,t:t});
+        var hBlocked=lvCorridorBlockedH(cand,t.x,apprY,Math.min(8,rowGap*0.45),{s:s,t:t})
+                   ||lvCorridorBlockedH(s.x,cand,sEdgeY,3,{s:s,t:t});
+        if(!vBlocked&&!hBlocked){gx=cand;break;}
+        if(gi===5)gx=cand; // fall back to the farthest tried
       }
+      return below
+        ? 'M'+s.x+' '+sEdgeY+' L'+gx+' '+sEdgeY+' L'+gx+' '+apprY+' L'+t.x+' '+apprY+' L'+t.x+' '+(t.y-t.h/2)
+        : 'M'+s.x+' '+sEdgeY+' L'+gx+' '+sEdgeY+' L'+gx+' '+apprY+' L'+t.x+' '+apprY+' L'+t.x+' '+(t.y+t.h/2);
     }
     var goingForward=tC.left>=sC.right;
     if(goingForward){
@@ -4672,6 +5066,14 @@ function lvGutterPath(s,t,opts){
       //   tgtLeftGap   → vertical channel in the column-gap left of target cell
       var srcRightGap=sC.right + colGap*0.4 + srcChanOff;
       var tgtLeftGap=tC.left - colGap*0.4 + tgtChanOff;
+      // Keep both risers INSIDE their card-free column gutters. A large channel offset
+      // (many parallel df edges sharing one gutter) can otherwise push the vertical past
+      // the gutter into the NEXT column's card bodies — the source riser would slice
+      // down the left edge of the stacked cards one column over. Clamp to the gutter span
+      // [cell edge, cell edge ± colGap]: heavily-shared risers compress toward the gutter
+      // wall but never cross a card. No-op when the offset already fits the gutter.
+      srcRightGap=Math.max(sC.right+2, Math.min(srcRightGap, sC.right+colGap-2));
+      tgtLeftGap=Math.min(tC.left-2, Math.max(tgtLeftGap, tC.left-colGap+2));
       // Keep the final horizontal stub pointing RIGHT into the target's left edge:
       // the approach column must stay left of the entry x even after channel offset.
       if(tgtLeftGap>tx-4)tgtLeftGap=tx-Math.max(8,colGap*0.4);
@@ -4684,14 +5086,39 @@ function lvGutterPath(s,t,opts){
       var bandPad=Math.max(s.h,t.h)/2 + 6;
       var blocked=lvCorridorBlockedH(srcRightGap,tgtLeftGap,midY,bandPad,{s:s,t:t});
       if(blocked){
-        // Fall back to the row-gap channel (above target if target is below source,
-        // else below), clamped out of the header strip.
-        midY = ty>sy
-          ? tC.top - rowGap*0.5 + midChanOff
-          : tC.bottom + rowGap*0.5 + midChanOff;
-        if(midY < bodyTop+4){
-          midY = sC.bottom + rowGap*0.5 + midChanOff;
+        // The simple midpoint corridor is blocked. For a long-haul edge spanning many
+        // columns (the common cause), a single row-gap is rarely clear end-to-end, so
+        // instead of the old 2-position guess we SEARCH candidate horizontal lanes for
+        // the clearest corridor between source and target. Candidates: the two row-gaps
+        // adjacent to source and target, then progressively wider gaps derived from the
+        // actual card edges in the corridor's x-span. Prefer a fully-clear lane; if none
+        // exists (genuinely crowded), pick the lane that minimizes card overlap.
+        var pad=Math.max(s.h,t.h)/2+4;
+        var lo=Math.min(srcRightGap,tgtLeftGap),hi=Math.max(srcRightGap,tgtLeftGap);
+        // Collect candidate y's: just-above and just-below every card that sits in the
+        // corridor's x-span, plus the source/target row gaps. Routing in these gaps
+        // threads BETWEEN rows of stacked cards.
+        var cand=[ty>sy?(tC.top-rowGap*0.5):(tC.bottom+rowGap*0.5),
+                  ty>sy?(sC.bottom+rowGap*0.5):(sC.top-rowGap*0.5)];
+        for(var ci=0;ci<lvCardList.length;ci++){
+          var cc=lvCardList[ci];if(cc===s||cc===t)continue;
+          var ccl=cc.x-cc.w/2,ccr=cc.x+cc.w/2;
+          if(ccr>lo+1&&ccl<hi-1){cand.push(cc.y-cc.h/2-rowGap*0.5);cand.push(cc.y+cc.h/2+rowGap*0.5);}
         }
+        // Evaluate each candidate; keep the first fully-clear one, else the least-blocked.
+        var bestY=midY,bestClear=false,bestScore=Infinity;
+        for(var k=0;k<cand.length;k++){
+          var cy=cand[k];if(cy<bodyTop+4)continue;
+          if(!lvCorridorBlockedH(lo,hi,cy,pad,{s:s,t:t})){bestY=cy;bestClear=true;break;}
+          // score = how many cards this lane clips (lower is better), as a fallback
+          var hits=0;
+          for(var ci2=0;ci2<lvCardList.length;ci2++){var c2=lvCardList[ci2];if(c2===s||c2===t)continue;
+            var c2l=c2.x-c2.w/2,c2r=c2.x+c2.w/2,c2t=c2.y-c2.h/2,c2b=c2.y+c2.h/2;
+            if(c2r>lo+1&&c2l<hi-1&&c2b>cy-pad&&c2t<cy+pad)hits++;}
+          if(hits<bestScore){bestScore=hits;bestY=cy;}
+        }
+        midY=bestY+ (bestClear?midChanOff:0);
+        if(midY<bodyTop+4)midY=bodyTop+4;
       }
       return'M'+sx+' '+sy+
              ' L'+srcRightGap+' '+sy+
@@ -4811,36 +5238,48 @@ function lvComputeFitScale(){
   var wrap=document.querySelector('#tp-lane .lv-grid-wrap');
   var grid=document.getElementById('lv-grid');
   if(!sc||!wrap||!grid)return 1;
-  // Read the natural size by temporarily clearing transform
-  var prev=wrap.style.transform;wrap.style.transform='none';
+  // Read the natural size by temporarily clearing the zoom
+  var prev=wrap.style.zoom;wrap.style.zoom='';
   var gw=grid.scrollWidth,gh=grid.scrollHeight;
   var vw=sc.clientWidth,vh=sc.clientHeight;
-  wrap.style.transform=prev;
+  wrap.style.zoom=prev;
   if(!gw||!gh||!vw||!vh)return 1;
   // Auto-fit constrains ONLY the lanes axis (Y in horizontal, X in vertical).
   // The flowing axis (stages) keeps natural size so text stays readable; user
   // scrolls horizontally to see all stages.
   var sx=vw/gw,sy=vh/gh;
   var s=lvOrientation==='h'?Math.min(sy,1):Math.min(sx,1);
-  // Don't shrink below 0.5 — past that text is unreadable
-  if(s<0.5)s=0.5;
+  // Don't shrink below 0.7 — past that the 14px titles stop being readable. Below the
+  // floor we clamp and let the user scroll rather than shrink the text into illegibility.
+  if(s<0.7)s=0.7;
   if(s>1)s=1;
   return s;
 }
 function lvApplyScale(s){
   var wrap=document.querySelector('#tp-lane .lv-grid-wrap');if(!wrap)return;
-  if(s>=0.999){wrap.style.transform='';wrap.style.transformOrigin=''}
-  else{wrap.style.transform='scale('+s+')';wrap.style.transformOrigin='top left'}
+  // Use CSS `zoom`, NOT transform:scale(). A transform makes the wrap a containing
+  // block for position:sticky descendants, which breaks the frozen stage/lane headers
+  // (they'd stick to the scrolling wrap instead of .lv-scroll). `zoom` scales layout
+  // without establishing a containing block, so sticky resolves against .lv-scroll and
+  // both header axes freeze. Edges live inside the wrap, so zoom scales them with the grid.
+  if(s>=0.999){wrap.style.zoom=''}
+  else{wrap.style.zoom=s}
   lvCurrentScale=s;
 }
 var lvCurrentScale=1;
+// Swimlanes PRIORITIZES FIT-TO-SCREEN by default so the whole map is visible, but the
+// fit scale is floored (lvComputeFitScale) so titles (14px) stay readable — below the
+// floor it clamps and the user scrolls rather than shrinking text away. Reset Zoom drops
+// to natural 1:1. Mirrors Task Map's tm2FitMode.
+var lvFitMode=true;
 function lvFit(){
+  lvFitMode=true;
   var s=lvComputeFitScale();lvApplyScale(s);
   var sc=document.querySelector('#tp-lane .lv-scroll');
   if(sc){sc.scrollLeft=0;sc.scrollTop=0}
   requestAnimationFrame(lvDrawEdges);
 }
-function lvReset(){lvApplyScale(1);requestAnimationFrame(lvDrawEdges)}
+function lvReset(){lvFitMode=false;lvApplyScale(1);requestAnimationFrame(lvDrawEdges)}
 
 // ==============================================================
 // TASK MAP 2 — single-axis natural flow (no lane axis)
@@ -4866,9 +5305,9 @@ function renderTaskMap2(){
   h+='<button class="lv-btn" onclick="tm2Fit()">Fit to Screen</button>';
   h+='<button class="lv-btn" onclick="tm2Reset()">Reset Zoom</button>';
   h+='<label class="fp-toggle"><input type="checkbox" id="tm2-df-toggle"'+(tm2ShowDataFlow?' checked':'')+' onchange="tm2ToggleDataFlow()"><span class="fp-slider"></span><span>Data Flow</span></label>';
+  h+='<button class="lv-btn" onclick="exportViewPDF(\'tmap2\')" title="Export this diagram as PDF">Export PDF</button>';
   h+='<div class="lv-legend">';
   h+='<span class="lv-legend-item"><span class="lv-legend-line lv-legend-task"></span>Task flow</span>';
-  h+='<span class="lv-legend-item"><span class="lv-legend-line lv-legend-child"></span>Linked workflow</span>';
   if(tm2ShowDataFlow)h+='<span class="lv-legend-item"><span class="lv-legend-line lv-legend-df"></span>Data flow</span>';
   h+='</div>';
   h+='</div>';
@@ -4886,7 +5325,7 @@ function renderTaskMap2(){
   var legend=host.querySelector('#tm2-field-legend');
   if(legend){legend.querySelector('.lv-fl-list').addEventListener('click',tm2FieldLegendClick);tm2PositionFieldLegend();}
   if(!tm2ResizeBound){
-    window.addEventListener('resize',function(){if(curTab==='tmap2')requestAnimationFrame(function(){tm2Fit();tm2PositionFieldLegend();})});
+    window.addEventListener('resize',function(){if(curTab==='tmap2')requestAnimationFrame(function(){if(tm2FitMode)tm2Fit();tm2PositionFieldLegend();})});
     tm2ResizeBound=true;
   }
 }
@@ -4933,12 +5372,25 @@ function tm2Build(){
   // reserved lane band, clear of both labels and cards.
   //   cross:  [0 .. LABELBAND] label  |  [LABELBAND .. CROSS0] skip lanes  |  [CROSS0 ..] cards
   var skipEdges=flowEdges.filter(function(e){return taskCol[e.to]-taskCol[e.from]>1});
-  var SKIPN=Math.min(skipEdges.length,8), SKIPGAP=12;
+  var SKIPN=skipEdges.length, SKIPGAP=12;   // no cap: every skip edge gets its own lane (skipBandH/CROSS0 grow to fit)
   var skipBandH=SKIPN>0?(SKIPN*SKIPGAP+10):0;
-  var LABELBAND=MF+LABELF;     // cross-space the stage label occupies at the top
+  // If ANY visible stage carries a condition, reserve extra cross-space in the top label
+  // band so the IF-pill can sit below the stage name. Applied uniformly so every column's
+  // cards still start at the same CROSS0 (row alignment preserved).
+  // Reserve extra top-band cross-space for condition pills — MEASURED, not guessed, so a
+  // long wrapped "IF…" pill is never clipped. Measure each conditional stage's header at a
+  // representative width and take the max overflow beyond the bare name line (~22px).
+  var condCols=live.filter(function(L){return lvTm2HasCond(L.c)});
+  var CONDBAND=0;
+  if(condCols.length){
+    var maxLabelH=0;
+    condCols.forEach(function(L){var h=tm2MeasureLabelHeight(L.c,200);if(h>maxLabelH)maxLabelH=h;});
+    CONDBAND=Math.max(0,maxLabelH-28)+6; // overflow beyond the name line + small breathing room (name line ~28px at 14px/1.3 + padding)
+  }
+  var LABELBAND=MF+LABELF+CONDBAND;     // cross-space the stage label (+condition) occupies at the top
   var LEADF=LABELF;            // flow-space reserved at each band's start (label)
   var CROSS0=LABELBAND+skipBandH+10;   // first card's cross-coord (below label + skip lanes)
-  var skipLaneG={};skipEdges.forEach(function(e,i){skipLaneG[e.from+'>'+e.to]=LABELBAND+6+(i%Math.max(SKIPN,1))*SKIPGAP});
+  var skipLaneG={};skipEdges.forEach(function(e,i){skipLaneG[e.from+'>'+e.to]=LABELBAND+6+i*SKIPGAP});
 
   // Place cards: within each stage, tasks lay out along the CROSS axis in array order;
   // stages advance along the FLOW axis. A card is ALWAYS 210 wide × measured-height
@@ -4966,6 +5418,13 @@ function tm2Build(){
   var crossMax=0;colMeta.forEach(function(m){if(m.crossEnd>crossMax)crossMax=m.crossEnd});
   var crossTotal=crossMax+MF;
 
+  // Per-column card cross-centers, so the edge router can tell when a same-column pair
+  // has OTHER cards stacked between them — a straight cross connector would slice
+  // through those cards, so such pairs must bow out around them (see tm2EdgePath).
+  var colCross={};
+  Object.keys(pos).forEach(function(tid){var p=pos[tid];(colCross[p.col]=colCross[p.col]||[]).push(p.g+p.cardCross/2)});
+  function colHasBetween(col,lo,hi){var a=colCross[col]||[];for(var i=0;i<a.length;i++){if(a[i]>lo+1&&a[i]<hi-1)return true}return false}
+
   // map flow/cross → screen x/y
   function XY(f,g){return isH?{x:f,y:g}:{x:g,y:f}}
   var totalW=isH?flowTotal:crossTotal, totalH=isH?crossTotal:flowTotal;
@@ -4976,7 +5435,8 @@ function tm2Build(){
   var bandG=root.append('g').attr('class','tm2-bands');
   colMeta.forEach(function(m){
     var c=m.c;
-    var depthCls=c.depth>0?' tm2-band-child':'';
+    var hasCond=lvTm2HasCond(c);
+    var depthCls=(c.depth>0?' tm2-band-child':'')+(hasCond?' tm2-band-cond-stage':'');
     var bandColor=(c.depth>0&&c.bpIdx>=0)?lvBpColor(c.bpIdx):'var(--accent)';
     // band spans the stage's flow-depth and the full cross extent.
     var f0=m.f-12, fdepth=m.depth+24, g0=18, gext=crossMax-18+12;
@@ -4984,11 +5444,14 @@ function tm2Build(){
     var sz=isH?{w:fdepth,h:gext}:{w:gext,h:fdepth};
     var grp=bandG.append('g').attr('transform','translate('+tl.x+','+tl.y+')');
     grp.append('rect').attr('class','tm2-band'+depthCls).attr('width',Math.max(10,sz.w)).attr('height',Math.max(10,sz.h)).attr('rx',10).style('--lv-bp',bandColor);
-    // label pinned at the band's flow-start
-    var lblW=isH?Math.max(fdepth-8,120):Math.min(gext-8,300);
-    var fo=grp.append('foreignObject').attr('x',6).attr('y',4).attr('width',lblW).attr('height',24);
+    // label pinned at the band's flow-start. A conditional stage gets a taller box so
+    // the IF-pill can wrap below the stage name. foreignObject HARD-CLIPS its content, so
+    // size the box to the actual measured label height (never clip the pill).
+    var lblW=isH?Math.max(fdepth-8,200):Math.min(gext-8,300);
+    var lblH=hasCond?(Math.max(tm2MeasureLabelHeight(c,lblW),28+CONDBAND)+4):28;
+    var fo=grp.append('foreignObject').attr('x',6).attr('y',4).attr('width',lblW).attr('height',lblH);
     var div=document.createElementNS('http://www.w3.org/1999/xhtml','div');
-    div.className='tm2-band-label'+depthCls;div.style.setProperty('--lv-bp',bandColor);
+    div.className='tm2-band-label'+depthCls+(hasCond?' has-cond':'');div.style.setProperty('--lv-bp',bandColor);
     div.innerHTML=lvTm2StageLabel(c);
     fo.node().appendChild(div);
   });
@@ -5003,11 +5466,13 @@ function tm2Build(){
   flowEdges.forEach(function(e){
     var s=ctr(e.from),t=ctr(e.to);if(!s||!t)return;
     var lane=skipLaneG[e.from+'>'+e.to];
-    var d=tm2EdgePath(s,t,XY,lane);
-    var kind=e.kind==='child'?'child':'task';
-    edgeG.append('path').attr('class','tm2-edge tm2-edge-'+kind).attr('d',d)
-      .attr('data-from',e.from).attr('data-to',e.to).attr('data-kind',kind)
-      .attr('marker-end',kind==='child'?'url(#tm2-arr-child)':'url(#tm2-arr)');
+    var d=tm2EdgePath(s,t,XY,lane,colHasBetween);
+    // All step-to-step arrows render with the SAME grey task-flow style (no distinct
+    // purple for sub-workflow boundaries — the linked cards already show provenance via
+    // their colored header/tint). data-kind preserves the real kind for any logic.
+    edgeG.append('path').attr('class','tm2-edge tm2-edge-task').attr('d',d)
+      .attr('data-from',e.from).attr('data-to',e.to).attr('data-kind',e.kind==='child'?'child':'task')
+      .attr('marker-end','url(#tm2-arr)');
   });
   // Build the full data-flow pair map once (deduped per pair, all fields aggregated)
   // and stash the layout context so the on-demand renderer can route arrows later.
@@ -5016,7 +5481,7 @@ function tm2Build(){
     if(!e.data)return;if(taskCol[e.from]==null||taskCol[e.to]==null||e.from===e.to)return;
     var k=e.from+'>'+e.to;(dfMap[k]=dfMap[k]||{from:e.from,to:e.to,fields:[]}).fields.push(e.data);
   });
-  tm2Ctx={ctr:ctr,XY:XY,MF:MF,skipBandH:skipBandH,labelBand:LABELBAND,dfMap:dfMap};
+  tm2Ctx={ctr:ctr,XY:XY,MF:MF,skipBandH:skipBandH,labelBand:LABELBAND,dfMap:dfMap,colHasBetween:colHasBetween};
 
   // --- task cards ---
   var cardG=root.append('g').attr('class','tm2-cards lane-grid');
@@ -5044,9 +5509,12 @@ function tm2Build(){
   var cardsHost=cardG.node();
   if(cardsHost)cardsHost.addEventListener('click',tm2CardAreaClick);
   tm2ApplyHighlight();
-  tm2Fit();
+  // Task Map is the "read the stages & tasks" view, so it OPENS AT NATURAL 1:1 — the
+  // stage header names stay full-size and legible. Fit-to-Screen is an explicit overview
+  // action (tm2FitMode); only re-apply it on rebuild if the user actually chose it.
+  if(tm2FitMode)tm2Fit();else tm2ApplyScale(1);
 }
-var tm2NatW=0,tm2NatH=0,tm2Scale=1,tm2Ctx=null;
+var tm2NatW=0,tm2NatH=0,tm2Scale=1,tm2Ctx=null,tm2FitMode=true;
 
 // Orthogonal edge router in the flow/cross frame, mapped to screen by XY(f,g).
 // f = position along the flow axis (stage direction), g = along the cross axis.
@@ -5054,14 +5522,26 @@ var tm2NatW=0,tm2NatH=0,tm2Scale=1,tm2Ctx=null;
 //   adjacent ahead  → out the flow side, mid-step in the gutter, into target
 //   skip ahead      → up into the reserved skip lane (clear), across, into target
 //   backward        → detour around the cross-far side
-function tm2EdgePath(s,t,XY,lane){
+function tm2EdgePath(s,t,XY,lane,colHasBetween){
   var GUT=24;
   function P(f,g){var p=XY(f,g);return p.x+','+p.y}
   // flow-axis edges of each card (the sides facing along the stage-advance direction)
   var sFlowEnd=s.cf+s.fl/2;       // source's leading (downstream) flow edge
   var tFlowStart=t.cf-t.fl/2;     // target's trailing (upstream) flow edge
   if(s.col===t.col){
-    if(Math.abs(s.cf-t.cf)<1){ // aligned on flow → straight cross connector
+    // Are there OTHER cards stacked between the two endpoints in this column? If so a
+    // straight cross connector would slice through them — bow out into the clear flow
+    // gap past the column's downstream edge, run along the cross there, and return into
+    // the target's downstream edge. Both cards share a flow extent (horizontal mode), so
+    // sFlowEnd===tFlowEnd and the vertical run sits in the empty inter-stage gutter.
+    var lo=Math.min(s.cg,t.cg), hi=Math.max(s.cg,t.cg);
+    var blocked=colHasBetween&&colHasBetween(s.col,lo,hi);
+    if(blocked){
+      var sideF=Math.max(sFlowEnd,t.cf+t.fl/2)+GUT;  // flow position out in the gap
+      var tEndF=t.cf+t.fl/2;                          // target's downstream flow edge
+      return 'M'+P(sFlowEnd,s.cg)+' L'+P(sideF,s.cg)+' L'+P(sideF,t.cg)+' L'+P(tEndF,t.cg);
+    }
+    if(Math.abs(s.cf-t.cf)<1){ // aligned on flow, nothing between → straight cross connector
       var g0=t.cg>=s.cg?s.cg+s.cr/2:s.cg-s.cr/2, g1=t.cg>=s.cg?t.cg-t.cr/2:t.cg+t.cr/2;
       return 'M'+P(s.cf,g0)+' L'+P(t.cf,g1);
     }
@@ -5169,19 +5649,27 @@ function tm2DrawDfEdges(){
   var field=tm2TraceField, active=tm2ActiveTaskId;
   if(!field&&!active)return;
   dfG.raise(); // draw on-demand data-flow arrows ABOVE the cards so they're fully visible
-  var ctr=tm2Ctx.ctr,XY=tm2Ctx.XY,dfMap=tm2Ctx.dfMap,labelBand=tm2Ctx.labelBand,skipBandH=tm2Ctx.skipBandH;
+  var ctr=tm2Ctx.ctr,XY=tm2Ctx.XY,dfMap=tm2Ctx.dfMap,labelBand=tm2Ctx.labelBand,skipBandH=tm2Ctx.skipBandH,colHasBetween=tm2Ctx.colHasBetween;
   var keys=Object.keys(dfMap).filter(function(k){
     var e=dfMap[k];
     if(field)return e.fields.indexOf(field)!==-1;
     return e.from===active||e.to===active;
   });
+  // Spread the across-legs of the drawn arrows across distinct rows within the reserved
+  // band (Phase 2) so a multi-consumer field doesn't stack every arrow on one line. The
+  // band spans [labelBand .. labelBand+skipBandH]; rows are clamped to fit it so a lane
+  // never bleeds into the stage labels above or the cards below. Sequence skip edges are
+  // dimmed while data flow is on, so the band is visually free to reuse here.
+  var LANED=10, bandTop=labelBand+4;
+  var laneRows=skipBandH>0?Math.max(1,Math.floor(skipBandH/LANED)):1, laneI=0;
   keys.forEach(function(k){
     var e=dfMap[k];var s=ctr(e.from),t=ctr(e.to);if(!s||!t)return;
-    // route through the clear skip-lane band (below labels, above cards) whenever the
-    // pair spans >1 stage OR is backward, so the arrow never crosses intervening cards.
+    // route through the clear band (below labels, above cards) whenever the pair spans
+    // >1 stage OR is backward, so the arrow never crosses intervening cards.
     var span=t.col-s.col;
-    var dfLane=(Math.abs(span)>1||span<0)?(labelBand+(skipBandH?skipBandH-4:8)):null;
-    dfG.append('path').attr('class','tm2-edge tm2-edge-df lv-edge-fhi').attr('d',tm2EdgePath(s,t,XY,dfLane))
+    var needLane=(Math.abs(span)>1||span<0);
+    var dfLane=needLane?(bandTop+(laneI++%laneRows)*LANED):null;
+    dfG.append('path').attr('class','tm2-edge tm2-edge-df lv-edge-fhi').attr('d',tm2EdgePath(s,t,XY,dfLane,colHasBetween))
       .attr('marker-end','url(#tm2-arr-df)').attr('data-from',e.from).attr('data-to',e.to);
   });
 }
@@ -5257,10 +5745,40 @@ function tm2FilterLegendForState(q){
 
 // Build a stage band label: "3. Trust Document Collection" (+ child BP sublabel).
 function lvTm2StageLabel(c){
-  var num=c.stage.id!=null?escHtml(String(c.stage.id))+'. ':'';
+  var num=c.stage.id!=null?'<span class="tm2-band-num">'+escHtml(String(c.stage.id))+'</span>':'';
   var name=escHtml(c.stage.name||'');
   var sub=c.bpName?'<span class="tm2-band-sub">&#8627; '+escHtml(c.bpName)+'</span>':'';
-  return '<span class="tm2-band-num">'+num+'</span>'+name+sub;
+  // Number pill + name share one row (the .tm2-band-title); the condition pill (if any)
+  // sits below it when the label wraps (.has-cond flex column).
+  var title='<span class="tm2-band-title">'+num+'<span class="tm2-band-nametext">'+name+'</span>'+sub+'</span>';
+  var cond='';
+  if(c.stage&&c.stage.condition){
+    // Mirror Swimlanes: an "IF …" pill under the stage name showing the FULL condition
+    // (no truncation). The band height is MEASURED (tm2MeasureLabelHeight) so the box
+    // grows to fit however many lines the condition wraps to — never clipped.
+    var fullCond=String(c.stage.condition).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+    var lines=summarizeConditionLines(c.stage.condition,44,99);
+    cond='<div class="tm2-band-cond" title="'+escHtml(fullCond)+'">'+lines.map(escHtml).join('<br>')+'</div>';
+  }
+  return title+cond;
+}
+// Does this stage carry a condition? Used to reserve extra band lead-space.
+function lvTm2HasCond(c){return !!(c&&c.stage&&c.stage.condition)}
+// Measure a conditional stage's rendered header height (name line + wrapped IF-pill) at
+// a representative band width, so the layout can reserve EXACTLY enough cross-space for
+// it (no clipped pills). Returns total px height of the .tm2-band-label box.
+var tm2LabelProbe=null;
+function tm2MeasureLabelHeight(c,widthPx){
+  if(!tm2LabelProbe){tm2LabelProbe=document.createElement('div');tm2LabelProbe.id='tm2-label-probe';
+    tm2LabelProbe.style.cssText='position:absolute;left:-9999px;top:-9999px;visibility:hidden';
+    document.body.appendChild(tm2LabelProbe);}
+  var depthCls=(c.depth>0?' tm2-band-child':'');
+  // Wrap in #tp-tmap2 so the scoped .tm2-band-* CSS applies during measurement.
+  tm2LabelProbe.innerHTML='<div id="tp-tmap2"><div class="tm2-band-label has-cond'+depthCls+'" style="width:'+widthPx+'px">'+lvTm2StageLabel(c)+'</div></div>';
+  var el=tm2LabelProbe.querySelector('.tm2-band-label');
+  var h=el?Math.ceil(el.getBoundingClientRect().height):24;
+  tm2LabelProbe.innerHTML='';
+  return h;
 }
 
 // Measure a task card's rendered height by probing it offscreen once (fixed width).
@@ -5274,6 +5792,7 @@ function tm2MeasureCard(t){
   probe.innerHTML=lvRenderCard(t);
   var el=probe.firstChild;var r=el.getBoundingClientRect();
   var dim={w:210,h:Math.max(54,Math.ceil(r.height)||64)};
+  probe.innerHTML='';   // don't leave the last-measured card's markup parked in <body>
   tm2MeasureCache[t.id]=dim;return dim;
 }
 
@@ -5287,15 +5806,111 @@ function tm2ApplyScale(s){
 // Fit to screen: scale so the CROSS axis (height in horizontal, width in vertical)
 // fits the viewport; the flow axis keeps natural size and scrolls — like Task Map 1.
 function tm2Fit(){
+  tm2FitMode=true;   // remember: subsequent rebuilds/resizes keep fitting until Reset
   var sc=document.querySelector('#tp-tmap2 .tm2-scroll');if(!sc||!tm2NatW||!tm2NatH)return;
   var vw=sc.clientWidth,vh=sc.clientHeight;if(!vw||!vh){tm2ApplyScale(1);return;}
   var sy=vh/tm2NatH,sx=vw/tm2NatW;
   var s=tm2Orient==='h'?Math.min(sy,1):Math.min(sx,1);
-  if(s<0.4)s=0.4;if(s>1)s=1;
+  // Floor at 0.7 so titles (14px) stay legible: below this we'd rather clamp and let the
+  // user scroll than shrink text into unreadability. Prioritize fit, but keep it readable.
+  if(s<0.7)s=0.7;if(s>1)s=1;
   tm2ApplyScale(s);
   sc.scrollLeft=0;sc.scrollTop=0;
 }
-function tm2Reset(){tm2ApplyScale(1);}
+function tm2Reset(){tm2FitMode=false;tm2ApplyScale(1);}
+
+// ==============================================================
+// PDF EXPORT (print-based, zero dependencies)
+// ==============================================================
+// Export the named diagram view to PDF via the browser's native print → "Save as PDF".
+// Switches to the view, lays it out at NATURAL 1:1 and full size (so the whole diagram
+// prints, not just the on-screen viewport), tags <body> with a printing-<view> class that
+// the @media print CSS uses to isolate just that diagram, prints, then restores all state.
+var _pdfPrev=null;
+function exportViewPDF(view){
+  if(_pdfPrev)return;                     // a print is already in flight
+  if(curTab!==view)switchTab(view);
+  // Defer so the tab's render (rAF-driven) has applied before we measure/expand.
+  requestAnimationFrame(function(){requestAnimationFrame(function(){_pdfDoExport(view)})});
+}
+function _pdfDoExport(view){
+  _pdfPrev={view:view};
+  var bodyCls='printing-'+view;
+  var pad=24,pageW=0,pageH=0;
+  if(view==='map'){
+    // Stage Map: SVG with a d3-zoomed #simple-g. Save the current zoom transform + SVG
+    // size, then reset to identity at natural size so the whole graph lays out.
+    var svg=document.getElementById('simple-svg');var g=document.getElementById('simple-g');
+    var P=window._sLayout||{_W:1200,_H:800};
+    _pdfPrev.svgW=svg.getAttribute('width');_pdfPrev.svgH=svg.getAttribute('height');
+    _pdfPrev.svgStyleW=svg.style.width;_pdfPrev.svgStyleH=svg.style.height;
+    _pdfPrev.gTransform=g.getAttribute('transform');
+    _pdfPrev.zoomT=(typeof simpleZoom!=='undefined'&&simpleZoom)?d3.zoomTransform(svg):null;
+    // Size the SVG to the CONTENT only (the @page margin provides the visual padding —
+    // baking pad into the SVG too would overflow the printable area onto a 2nd page).
+    pageW=Math.ceil(P._W+pad*2);pageH=Math.ceil(P._H+pad*2);
+    svg.setAttribute('width',Math.ceil(P._W));svg.setAttribute('height',Math.ceil(P._H));
+    svg.style.width=Math.ceil(P._W)+'px';svg.style.height=Math.ceil(P._H)+'px';
+    g.setAttribute('transform','translate(0,0)');
+  }else if(view==='tmap2'){
+    // Task Map: CSS transform on the wrap. Save + clear it (natural 1:1).
+    var w=document.querySelector('#tp-tmap2 .tm2-svg-wrap');
+    if(w){_pdfPrev.tmTransform=w.style.transform;_pdfPrev.tmPad=w.style.paddingRight;w.style.transform='';w.style.paddingRight='0';}
+    _pdfPrev.tmScale=tm2Scale;tm2Scale=1;
+    pageW=Math.ceil((tm2NatW||1200)+pad*2);pageH=Math.ceil((tm2NatH||800)+pad*2);
+  }else if(view==='lane'){
+    // Swimlanes: CSS zoom on the wrap. Save + clear it (natural 1:1), then redraw edges
+    // so the overlay SVG matches the un-zoomed grid before printing.
+    var lw=document.querySelector('#tp-lane .lv-grid-wrap');
+    if(lw){_pdfPrev.lvZoom=lw.style.zoom;lw.style.zoom='';}
+    _pdfPrev.lvScale=lvCurrentScale;lvCurrentScale=1;
+    if(typeof lvDrawEdges==='function')lvDrawEdges();
+    // Measure the grid at natural (un-zoomed) size for the page dimensions.
+    var grid=document.getElementById('lv-grid');
+    var gw=grid?Math.max(grid.scrollWidth,lw?lw.scrollWidth:0):1200;
+    var gh=grid?Math.max(grid.scrollHeight,lw?lw.scrollHeight:0):800;
+    pageW=Math.ceil(gw+pad*2);pageH=Math.ceil(gh+pad*2);
+  }
+  // Inject an @page sized to the WHOLE diagram so it prints on ONE page (no slicing).
+  // CSS px == 1/96in; Chrome honors a custom @page size with preferCSSPageSize. The page
+  // is content + the @page margin (pad) on each side + SLACK, so the printable area is
+  // strictly LARGER than the content — sub-pixel rounding can't spill onto a 2nd page.
+  if(pageW&&pageH){
+    var SLACK=16;
+    var st=document.getElementById('pdf-page-style');if(!st){st=document.createElement('style');st.id='pdf-page-style';document.head.appendChild(st);}
+    st.textContent='@media print{@page{size:'+(pageW+SLACK)+'px '+(pageH+SLACK)+'px;margin:'+pad+'px}'+
+      'body[class*="printing-"] .tm2-scroll,body[class*="printing-"] .lv-scroll{padding:0!important}'+
+      'body[class*="printing-"] #simple-svg,body[class*="printing-"] #tm2-svg{padding:0!important}}';
+  }
+  document.body.classList.add(bodyCls);
+  // Restore on afterprint (fires whether the user saves or cancels).
+  var restore=function(){
+    window.removeEventListener('afterprint',restore);
+    var p=_pdfPrev;_pdfPrev=null;if(!p)return;
+    document.body.classList.remove('printing-'+p.view);
+    var ps=document.getElementById('pdf-page-style');if(ps)ps.parentNode.removeChild(ps);
+    if(p.view==='map'){
+      var svg=document.getElementById('simple-svg'),g=document.getElementById('simple-g');
+      if(p.svgW==null)svg.removeAttribute('width');else svg.setAttribute('width',p.svgW);
+      if(p.svgH==null)svg.removeAttribute('height');else svg.setAttribute('height',p.svgH);
+      svg.style.width=p.svgStyleW||'';svg.style.height=p.svgStyleH||'';
+      if(p.gTransform==null)g.removeAttribute('transform');else g.setAttribute('transform',p.gTransform);
+      if(p.zoomT&&typeof simpleZoom!=='undefined'&&simpleZoom){d3.select(svg).call(simpleZoom.transform,p.zoomT);}
+    }else if(p.view==='tmap2'){
+      var w=document.querySelector('#tp-tmap2 .tm2-svg-wrap');
+      tm2Scale=p.tmScale!=null?p.tmScale:1;
+      if(w){w.style.paddingRight=p.tmPad||'';}
+      tm2ApplyScale(tm2Scale);
+    }else if(p.view==='lane'){
+      lvCurrentScale=p.lvScale!=null?p.lvScale:1;
+      lvApplyScale(lvCurrentScale);
+      if(typeof lvDrawEdges==='function')requestAnimationFrame(lvDrawEdges);
+    }
+  };
+  window.addEventListener('afterprint',restore);
+  // Give layout one more frame to settle at full size, then open the print dialog.
+  requestAnimationFrame(function(){requestAnimationFrame(function(){window.print()})});
+}
 
 // ==============================================================
 // INIT
