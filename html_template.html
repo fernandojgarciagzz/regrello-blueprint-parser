@@ -180,6 +180,43 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .sf-ctx-tag.prod{background:var(--success-soft);border-color:var(--success-border);color:var(--success-text-muted)}
 .sf-ctx-tag.cons{background:color-mix(in srgb,var(--primary-text-muted) 8%,transparent);border-color:color-mix(in srgb,var(--primary-text-muted) 25%,transparent);color:var(--primary-text-muted)}
 .sf-ctx-journey{font-size:12px;color:var(--text-dim);padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);line-height:1.5;box-shadow:none}
+/* Right-panel SUBTABS (Overview / Data / Documents / Forms) — mirrors the main .dtab underline look */
+.sf-subtabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin:-20px -24px 16px;padding:0 24px;position:sticky;top:-20px;background:var(--bg);z-index:2}
+.sf-subtab{padding:11px 12px;font-size:12px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.sf-subtab:hover{color:var(--text)}
+.sf-subtab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.sf-subtab .sf-subtab-count{font-size:10px;font-weight:600;padding:1px 6px;border-radius:9999px;background:var(--neutral-soft);color:var(--text-dim);line-height:1.3}
+.sf-subtab.active .sf-subtab-count{background:var(--primary-soft);color:var(--primary-text-muted)}
+.sf-scope-banner{display:flex;align-items:center;gap:8px;font-size:12px;background:var(--primary-soft);border-radius:var(--radius-sm);padding:7px 10px;margin-bottom:14px;color:var(--text)}
+.sf-scope-banner .sf-scope-id{font-weight:600;color:var(--accent)}
+.sf-scope-banner .sf-scope-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-dim)}
+.sf-scope-x{cursor:pointer;color:var(--text-dim);font-size:15px;line-height:1;flex-shrink:0;padding:0 2px}
+.sf-scope-x:hover{color:var(--text)}
+/* Data subtab — field list + selected-field detail */
+.sf-fld-list{display:flex;flex-direction:column}
+.sf-fld-row{display:flex;align-items:center;gap:7px;font-size:12px;padding:7px 6px;border-bottom:1px solid var(--neutral-border);cursor:pointer;border-radius:var(--radius-sm)}
+.sf-fld-row:hover{background:var(--neutral-soft)}
+.sf-fld-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:500}
+.sf-fld-type{color:var(--text-dim);font-size:11px;flex-shrink:0}
+.sf-fld-meta{display:flex;gap:6px;flex-shrink:0;font-size:11px;font-variant-numeric:tabular-nums}
+.sf-fld-prod{color:var(--success-text-muted)}
+.sf-fld-cons{color:var(--primary-text-muted)}
+.sf-fld-back{font-size:12px;color:var(--accent);cursor:pointer;margin-bottom:12px;display:inline-block}
+.sf-fld-back:hover{text-decoration:underline}
+.sf-fld-detail-name{font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.sf-fld-detail-type{font-size:12px;color:var(--text-dim);margin-top:2px}
+.sf-io-none{font-size:12px;color:var(--text-dim)}
+.sf-doc-row{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;color:var(--text)}
+.sf-doc-row .sf-doc-owner{color:var(--text-dim);font-size:11px;margin-left:auto;padding-left:8px;flex-shrink:0}
+.sf-ctx-empty{font-size:12px;color:var(--text-dim);padding:24px 4px;text-align:center}
+.sf-form-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.sf-form-chip{font-size:12px;padding:5px 11px;border-radius:9999px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;transition:all .15s}
+.sf-form-chip:hover{border-color:var(--accent);color:var(--text)}
+.sf-form-chip.active{background:var(--primary-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+/* Forms reused inside the narrow right panel: stack two-col rows + drop the floating-sheet chrome */
+.sf-context .fm-sheet{max-width:none;box-shadow:none}
+.sf-context .form-fields-row.two-col{flex-direction:column;gap:0}
+.sf-context .form-field-spacer{display:none}
 
 /* TASK ROWS — flat rows inside a stage card (Regrello "Stages" list look) */
 .tcard{background:transparent;border:none;border-top:1px solid var(--neutral-border);border-radius:0;margin-bottom:0;overflow:hidden;transition:opacity .2s}
@@ -284,26 +321,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .erow .etgt{color:var(--green)}
 .erow .eid{color:var(--text-dim);font-size:12px}
 
-/* FORMS TAB */
-#tp-forms.active{display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:0}
-/* Forms tab: left form navigator + large form preview on the right */
-.fm-layout{display:flex;flex:1;min-height:0;overflow:hidden}
-.fm-sidebar{flex:0 0 280px;display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--border);background:var(--bg)}
-.fm-sb-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
-.fm-sb-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-dim);display:flex;align-items:center;gap:8px}
-.fm-sb-count{font-size:11px;font-weight:700;color:var(--accent);background:var(--primary-soft);border-radius:9999px;padding:1px 8px}
-.fm-sb-stats{font-size:11px;color:var(--text-dim);margin-top:3px}
-.fm-sb-search{margin:8px 12px 4px;padding:6px 10px;font-size:12px;font-family:inherit;border:1px solid var(--neutral-border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);outline:none}
-.fm-sb-search:focus{border-color:var(--accent)}
-.fm-sb-list{overflow-y:auto;padding:6px;flex:1}
-.fm-sb-item{padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:background .12s;margin-bottom:2px;border:1px solid transparent}
-.fm-sb-item:hover{background:var(--neutral-soft)}
-.fm-sb-item.active{background:var(--primary-soft);border-color:var(--primary-border)}
-.fm-sb-item.active .fm-sb-item-name{color:var(--accent)}
-.fm-sb-item-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:2px}
-.fm-sb-item-meta{font-size:11px;color:var(--text-dim)}
-.fm-sb-rules{color:var(--warning-text-muted);font-weight:500}
-.fm-main{flex:1;min-width:0;overflow-y:auto;padding:28px 32px;background:var(--bg)}
+/* FORMS (rendered inside the Process tab's Forms subtab) */
 /* the form rendered as an actual document sheet: white card, border, centered */
 .fm-sheet{max-width:860px;margin:0 auto;background:var(--surface);border:1px solid var(--neutral-border);border-radius:var(--radius-md);box-shadow:var(--shadow-card);overflow:hidden}
 .fm-form-head{padding:20px 24px 16px;border-bottom:1px solid var(--neutral-border);background:var(--surface)}
@@ -311,16 +329,6 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .fm-form-sub{font-size:12px;color:var(--text-dim);margin-top:3px}
 .fm-form-tasks{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 .fm-form-body{padding:4px 4px 12px}
-.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-card);transition:all .2s}
-.form-card:hover{box-shadow:var(--shadow-1);border-color:var(--neutral-solid)}
-.form-card-hdr{padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid transparent}
-.form-card-hdr:hover{background:var(--neutral-soft)}
-.form-card-hdr.open{border-bottom-color:var(--border)}
-.form-card-name{font-weight:600;font-size:14px;flex:1}
-.form-card-meta{display:flex;gap:12px;font-size:12px;color:var(--text-dim)}
-.form-card-meta span{display:inline-flex;align-items:center;gap:4px}
-.form-card-body{display:none;padding:8px 24px 16px;background:var(--surface)}
-.form-card-body.open{display:block}
 /* Regrello form look: sections separated by a top divider; each section header is a
    muted "not-started" status circle + 16px section name (+ optional description),
    mirroring the real form preview/configure view. */
@@ -915,7 +923,6 @@ a.jump:hover{text-decoration:underline}
     <div class="dtab" data-tab="lane" onclick="switchTab('lane')">Swimlanes</div>
     <div class="dtab" data-tab="stageflow" onclick="switchTab('stageflow')">Process</div>
     <div class="dtab" data-tab="fields" onclick="switchTab('fields')">Fields <span class="tab-count tab-count-active" id="tc-fields"></span></div>
-    <div class="dtab" data-tab="forms" onclick="switchTab('forms')">Forms <span class="tab-count tab-count-active" id="tc-forms"></span></div>
     <div class="dtab" data-tab="prompts" onclick="switchTab('prompts')">Agent Prompts <span class="tab-count tab-count-active" id="tc-agents"></span></div>
   </div>
   <div class="tab-panel active" data-tab="map" id="tp-map" style="padding:0;position:relative">
@@ -936,7 +943,6 @@ a.jump:hover{text-decoration:underline}
   </div>
   <div class="tab-panel" data-tab="stageflow" id="tp-stageflow"></div>
   <div class="tab-panel" data-tab="fields" id="tp-fields"></div>
-  <div class="tab-panel" data-tab="forms" id="tp-forms"></div>
   <div class="tab-panel" data-tab="prompts" id="tp-prompts"></div>
   <div class="tab-panel" data-tab="lane" id="tp-lane"></div>
   <div class="tab-panel" data-tab="tmap2" id="tp-tmap2"></div>
@@ -1079,6 +1085,10 @@ function applyAllFilters(){
 var curTab='map';
 var sfViewingChild=false,sfViewingChildIdx=0,sfExpandedTaskId=null,sfTraceField=null,sfTracedTaskIds=new Set();
 var fullProcess=false;
+var sfCtxTab='overview';   // right-panel subtab: overview|data|documents|forms
+var sfFormSel=0;           // index of the form shown in the Forms subtab
+var sfTraceFromData=false; // true when the current field trace was started from the Data subtab
+                           // (keeps the subtab bar visible instead of the full-panel takeover)
 function activeChildStages(){return sfViewingChild&&childBlueprints[sfViewingChildIdx]?childBlueprints[sfViewingChildIdx].stages:[]}
 function allStagesList(){return fullProcess?stages.concat(childStages):(sfViewingChild?activeChildStages():stages)}
 function toggleFullProcess(){
@@ -1118,7 +1128,6 @@ function renderTab(t){
     case'stageflow':renderStageFlow();break;
     case'fields':renderFieldReg();break;
     case'prompts':renderPrompts();break;
-    case'forms':renderForms();break;
     case'lane':renderLaneView();break;
     case'tmap2':renderTaskMap2();break;
   }
@@ -2298,7 +2307,7 @@ function renderStageFlow(){
   var el=document.getElementById('tp-stageflow');
   el.style.overflowY='hidden';
   el.innerHTML='<div class="sf-layout"><div class="sf-canvas" id="sf-canvas"></div><div class="sf-context" id="sf-context"></div></div>';
-  sfViewingChild=false;sfExpandedTaskId=null;sfTraceField=null;sfTracedTaskIds.clear();
+  sfViewingChild=false;sfExpandedTaskId=null;sfTraceField=null;sfTraceFromData=false;sfTracedTaskIds.clear();sfCtxTab='overview';sfFormSel=0;
   renderProcessCanvas();renderContextPanel();
   document.getElementById('sf-canvas').addEventListener('click',function(e){
     if(sfTraceField&&(e.target.id==='sf-canvas'||e.target.classList.contains('sf-canvas')))sfExitTrace();
@@ -2485,7 +2494,10 @@ function renderChildBpContainer(linkTask,cb){
 }
 
 function sfToggleTask(taskId){
-  if(sfTraceField)return;
+  // A card-initiated full trace blocks toggling (cards are dimmed). A Data-subtab field
+  // selection is cleared first (and the canvas un-dimmed) so the task can open normally.
+  if(sfTraceField&&!sfTraceFromData)return;
+  if(sfTraceFromData){sfTraceField=null;sfTraceFromData=false;sfTracedTaskIds.clear();renderProcessCanvas();}
   function setOpen(id,on){
     var td=document.getElementById('sf-td-'+id);if(!td)return;
     td.classList.toggle('open',on);
@@ -2500,13 +2512,15 @@ function sfToggleTask(taskId){
     if(sfExpandedTaskId)setOpen(sfExpandedTaskId,false);
     setOpen(taskId,true);
     sfExpandedTaskId=taskId;
+    sfFormSel=0;   // start at the task's first form when a new card opens
   }
   renderContextPanel();
 }
 
-function sfTraceFieldClick(fieldName){
-  if(sfTraceField===fieldName){sfExitTrace();return}
+function sfTraceFieldClick(fieldName,fromData){
+  if(sfTraceField===fieldName&&(!!sfTraceFromData===!!fromData)){sfExitTrace();return}
   sfTraceField=fieldName;
+  sfTraceFromData=!!fromData;
   sfTracedTaskIds.clear();
   var fi=fieldIndex[fieldName];
   if(fi){
@@ -2527,7 +2541,12 @@ function sfTraceFieldClick(fieldName){
 }
 
 function sfExitTrace(){
-  sfTraceField=null;sfTracedTaskIds.clear();sfExpandedTaskId=null;
+  sfTraceField=null;sfTraceFromData=false;sfTracedTaskIds.clear();sfExpandedTaskId=null;
+  renderProcessCanvas();renderContextPanel();
+}
+// Clear a Data-subtab field selection but stay on the Data tab (return to the full field list).
+function sfClearDataField(){
+  sfTraceField=null;sfTraceFromData=false;sfTracedTaskIds.clear();
   renderProcessCanvas();renderContextPanel();
 }
 
@@ -2615,11 +2634,53 @@ function sfGoToCrumb(idx){
   renderProcessCanvas();renderContextPanel();
 }
 
+function sfSetCtxTab(name){
+  // leaving the Data tab clears any field the Data tab had selected (its canvas trace)
+  if(name!=='data'&&sfTraceFromData){sfTraceField=null;sfTraceFromData=false;sfTracedTaskIds.clear();renderProcessCanvas();}
+  sfCtxTab=name;renderContextPanel();
+}
+
+// The right panel is a sub-tabbed view (Overview / Data / Documents / Forms), like the real
+// Regrello workflow detail pane. Field-trace is a transient overlay that takes over the panel
+// (the canvas trace-bar already signals it) so the subtab bar hides while tracing. When a task
+// card is open, the subtabs scope to that task; otherwise they show the whole blueprint.
 function renderContextPanel(){
   var el=document.getElementById('sf-context');if(!el)return;
-  if(sfTraceField)el.innerHTML=renderCtxField(sfTraceField);
-  else if(sfExpandedTaskId)el.innerHTML=renderCtxTask(sfExpandedTaskId);
-  else el.innerHTML=renderCtxSummary();
+  // A field trace started from inside a task CARD takes over the whole panel (the canvas
+  // trace-bar signals it). A field selected from the DATA subtab keeps the subtab bar.
+  if(sfTraceField&&!sfTraceFromData){el.innerHTML=renderCtxField(sfTraceField);return}
+  var tid=sfExpandedTaskId;
+  var hasForms=(typeof formsData!=='undefined'&&formsData&&formsData.length);
+  // subtab definitions with scoped counts
+  var fieldCount,docCount,formCount;
+  if(tid){
+    var t=taskMap[tid]||{inputs:[],outputs:[],docs:[]};
+    fieldCount=sfTaskFieldList(tid).length;
+    docCount=t.docs?t.docs.length:0;
+    formCount=hasForms?getFormsForTask(tid).length:0;
+  }else{
+    fieldCount=sfFieldList().length;
+    docCount=sfAllDocs().length;
+    formCount=hasForms?formsData.length:0;
+  }
+  var tabs=[['overview','Overview',null],['data','Data',fieldCount],['documents','Documents',docCount],['forms','Forms',formCount]];
+  var h='<div class="sf-subtabs">';
+  tabs.forEach(function(tb){
+    var cnt=(tb[2]!=null)?' <span class="sf-subtab-count">'+tb[2]+'</span>':'';
+    h+='<div class="sf-subtab'+(sfCtxTab===tb[0]?' active':'')+'" onclick="sfSetCtxTab(\''+tb[0]+'\')">'+tb[1]+cnt+'</div>';
+  });
+  h+='</div>';
+  if(tid){
+    var tt=taskMap[tid];
+    h+='<div class="sf-scope-banner"><span class="sf-scope-id">'+tid+'</span><span class="sf-scope-name">'+escHtml(tt?tt.name:'')+'</span><span class="sf-scope-x" title="Back to blueprint" onclick="sfToggleTask(\''+tid+'\')">&times;</span></div>';
+  }
+  h+='<div id="sf-ctx-content">';
+  if(sfCtxTab==='data')h+=renderCtxData(tid);
+  else if(sfCtxTab==='documents')h+=renderCtxDocs(tid);
+  else if(sfCtxTab==='forms')h+=renderCtxForms(tid);
+  else h+=(tid?renderCtxTaskOverview(tid):renderCtxSummary());
+  h+='</div>';
+  el.innerHTML=h;
 }
 
 function renderCtxSummary(){
@@ -2674,7 +2735,7 @@ function renderCtxSummary(){
   return h;
 }
 
-function renderCtxTask(taskId){
+function renderCtxTaskOverview(taskId){
   var t=taskMap[taskId];if(!t)return'';
   var sid=taskToStage[taskId];
   if(!sid){childStages.forEach(function(s){s.tasks.forEach(function(t){if(t.id===taskId)sid=s.id})})}
@@ -2695,12 +2756,7 @@ function renderCtxTask(taskId){
     var d=t.desc.length>1000?t.desc.substring(0,1000)+'…':t.desc;
     h+='<div style="font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap">'+escHtml(d)+'</div></div>';
   }
-  // Documents
-  if(t.docs&&t.docs.length){
-    h+='<div class="sf-ctx-section"><h4>Documents ('+t.docs.length+')</h4>';
-    t.docs.forEach(function(dn){h+='<div style="font-size:12px;padding:2px 0"><span class="ft-icon ft-doc"></span> '+escHtml(dn)+'</div>'});
-    h+='</div>';
-  }
+  // (Documents live in the Documents subtab; Inputs/Outputs detail in the Data subtab.)
   // Stage start condition
   if(parentStage&&parentStage.condition){
     h+='<div class="sf-ctx-section"><h4>Stage Start Condition</h4>';
@@ -2757,6 +2813,139 @@ function renderCtxTask(taskId){
     });
     h+='</div>';
   }
+  return h;
+}
+
+// ---- Right-panel subtab content helpers ----
+// Blueprint-wide aggregates (respect Full-Process / child-BP scope via allStagesList()).
+// Every field in the current scope (parent / child / full-process), in first-appearance order.
+// Field NAMES come from walking the visible tasks (so the list reflects what you're looking at),
+// but each field's producer/consumer task IDs come from the authoritative cross-blueprint
+// fieldIndex — so the counts + detail match the canvas trace (which also uses fieldIndex).
+function sfFieldList(){
+  var order=[],seen={};
+  allStagesList().forEach(function(s){s.tasks.forEach(function(t){
+    (t.outputs||[]).forEach(function(o){if(!seen[o.n]){seen[o.n]=1;order.push({n:o.n,t:o.t})}});
+    (t.inputs||[]).forEach(function(i){if(!seen[i.n]){seen[i.n]=1;order.push({n:i.n,t:i.t})}});
+  })});
+  return order.map(function(o){return sfFieldEntry(o.n,o.t)});
+}
+// Build a {n,t,producers[],consumers[]} entry for a field, pulling producer/consumer task IDs
+// from fieldIndex (deduped, preserving order). Falls back to the visible-scope scan if the field
+// is absent from fieldIndex.
+function sfFieldEntry(name,type){
+  var fi=(typeof fieldIndex!=='undefined')?fieldIndex[name]:null;
+  var prod=[],cons=[];
+  if(fi){
+    fi.producers.forEach(function(p){if(prod.indexOf(p.taskId)<0)prod.push(p.taskId)});
+    fi.consumers.forEach(function(c){if(cons.indexOf(c.taskId)<0)cons.push(c.taskId)});
+    type=type||fi.type;
+  }else{
+    allStagesList().forEach(function(s){s.tasks.forEach(function(t){
+      (t.outputs||[]).forEach(function(o){if(o.n===name&&prod.indexOf(t.id)<0)prod.push(t.id)});
+      (t.inputs||[]).forEach(function(i){if(i.n===name&&cons.indexOf(t.id)<0)cons.push(t.id)});
+    })});
+  }
+  return{n:name,t:type||'',producers:prod,consumers:cons};
+}
+// The fields used by one task (its outputs then inputs), in the same {n,t,producers,consumers} shape
+// but with producers/consumers spanning the WHOLE scope (so you see who else touches each field).
+function sfTaskFieldList(taskId){
+  var all=sfFieldList(),t=taskMap[taskId];if(!t)return[];
+  var names=[],seen={};
+  (t.outputs||[]).forEach(function(o){if(!seen[o.n]){seen[o.n]=1;names.push(o.n)}});
+  (t.inputs||[]).forEach(function(i){if(!seen[i.n]){seen[i.n]=1;names.push(i.n)}});
+  var byName={};all.forEach(function(f){byName[f.n]=f});
+  return names.map(function(n){return byName[n]}).filter(Boolean);
+}
+function sfAllDocs(){
+  var out=[];
+  allStagesList().forEach(function(s){s.tasks.forEach(function(t){
+    (t.docs||[]).forEach(function(dn){out.push({doc:dn,tid:t.id})});
+  })});
+  return out;
+}
+function getFormsForTask(taskId){
+  if(typeof formsData==='undefined'||!formsData)return[];
+  return formsData.filter(function(f){return f.taskIds&&f.taskIds.indexOf(taskId)!==-1});
+}
+// Task chips for a field's producers / consumers.
+function sfFieldTaskChips(ids,cls){
+  if(!ids.length)return'<span class="sf-io-none">none</span>';
+  return ids.map(function(tid){var tm=taskMap[tid];return'<span class="sf-ctx-tag '+cls+'" title="'+escHtml(tm?tm.name:'')+'">'+tid+(tm?': '+escHtml((tm.name||'').substring(0,28)):'')+'</span>'}).join('');
+}
+// One collapsed field row (name + type + small producer/consumer counts); clicking selects it.
+function sfFieldListRow(f){
+  var esc=String(f.n).replace(/'/g,"\\'");
+  var meta=[];
+  if(f.producers.length)meta.push('<span class="sf-fld-prod">&#8593;'+f.producers.length+'</span>');
+  if(f.consumers.length)meta.push('<span class="sf-fld-cons">&#8595;'+f.consumers.length+'</span>');
+  var h='<div class="sf-fld-row" onclick="sfTraceFieldClick(\''+esc+'\',true)">';
+  h+=ftIcon(f.t)+'<span class="sf-fld-name">'+escHtml(f.n)+'</span>';
+  h+='<span class="sf-fld-type">'+escHtml(f.t||'')+'</span>';
+  h+='<span class="sf-fld-meta">'+meta.join('')+'</span>';
+  h+='</div>';
+  return h;
+}
+// Data subtab. No field selected → the full field list (all fields in order, each with its
+// producer/consumer tasks). A field selected (sfTraceField, from this tab) → just that field's
+// producing/consuming tasks, with a back link. Scoped to a task when a card is open.
+function renderCtxData(taskId){
+  var list=taskId?sfTaskFieldList(taskId):sfFieldList();
+  // ---- selected-field detail ----
+  if(sfTraceField&&sfTraceFromData){
+    var sel=null;list.forEach(function(f){if(f.n===sfTraceField)sel=f});
+    // field may sit outside the task's own list; fall back to the full scope so detail still shows
+    if(!sel){sfFieldList().forEach(function(f){if(f.n===sfTraceField)sel=f})}
+    var h='<div class="sf-fld-back" onclick="sfClearDataField()">&#8592; All fields</div>';
+    if(!sel){
+      h+='<div class="sf-ctx-section"><div class="sf-fld-detail-name">'+escHtml(sfTraceField)+'</div>';
+      h+='<div class="sf-ctx-empty">Appears in '+sfTracedTaskIds.size+' task'+(sfTracedTaskIds.size!==1?'s':'')+' but has no tracked data-flow connections.</div></div>';
+      return h;
+    }
+    h+='<div class="sf-ctx-section"><div class="sf-fld-detail-name">'+ftIcon(sel.t)+escHtml(sel.n)+'</div>';
+    h+='<div class="sf-fld-detail-type">'+escHtml(sel.t||'')+'</div></div>';
+    h+='<div class="sf-ctx-section"><h4>Produced By ('+sel.producers.length+')</h4>'+sfFieldTaskChips(sel.producers,'prod')+'</div>';
+    h+='<div class="sf-ctx-section"><h4>Consumed By ('+sel.consumers.length+')</h4>'+sfFieldTaskChips(sel.consumers,'cons')+'</div>';
+    h+='<div class="sf-ctx-section" style="font-size:11px;color:var(--text-dim)">These tasks are highlighted in the process. Click the field again to clear.</div>';
+    return h;
+  }
+  // ---- full field list ----
+  if(!list.length)return'<div class="sf-ctx-empty">No data fields'+(taskId?' on this task.':' in scope.')+'</div>';
+  var h='<div class="sf-ctx-section" style="margin-bottom:8px"><h4>Fields ('+list.length+')</h4></div>';
+  h+='<div class="sf-fld-list">';
+  list.forEach(function(f){h+=sfFieldListRow(f)});
+  h+='</div>';
+  h+='<div class="sf-ctx-section" style="margin-top:12px;font-size:11px;color:var(--text-dim)">Click a field to see just the tasks that produce or consume it.</div>';
+  return h;
+}
+function renderCtxDocs(taskId){
+  var rows;
+  if(taskId){var t=taskMap[taskId]||{};rows=(t.docs||[]).map(function(dn){return{doc:dn}})}
+  else rows=sfAllDocs();
+  if(!rows.length)return'<div class="sf-ctx-empty">No documents attached.</div>';
+  var h='<div class="sf-ctx-section"><h4>Documents ('+rows.length+')</h4>';
+  rows.forEach(function(r){
+    h+='<div class="sf-doc-row"><span class="ft-icon ft-doc"></span><span>'+escHtml(r.doc)+'</span>'+(r.tid?'<span class="sf-doc-owner">Task '+r.tid+'</span>':'')+'</div>';
+  });
+  h+='</div>';
+  return h;
+}
+function sfFormSelect(i){sfFormSel=i;renderContextPanel()}
+function renderCtxForms(taskId){
+  if(typeof formsData==='undefined'||!formsData||!formsData.length)return'<div class="sf-ctx-empty">No forms in this blueprint.</div>';
+  var list=taskId?getFormsForTask(taskId):formsData;
+  if(!list.length)return'<div class="sf-ctx-empty">No forms on this task.</div>';
+  if(sfFormSel>=list.length)sfFormSel=0;
+  var h='';
+  if(list.length>1){
+    h+='<div class="sf-form-chips">';
+    list.forEach(function(f,i){
+      h+='<span class="sf-form-chip'+(i===sfFormSel?' active':'')+'" onclick="sfFormSelect('+i+')" title="'+escHtml(f.name)+'">'+escHtml(f.name)+'</span>';
+    });
+    h+='</div>';
+  }
+  h+=renderFormPanel(list[sfFormSel]);
   return h;
 }
 
@@ -2844,16 +3033,6 @@ function applyDetailedFilters(){
   if(fs){fs.value=q;filterFieldRows()}
   // Agent Prompts — apply global search
   ptFilter();
-  // Forms — dim non-matching form cards
-  if(q&&document.getElementById('tp-forms')){
-    var ql=q.toLowerCase();
-    document.querySelectorAll('.form-card').forEach(function(card){
-      var text=(card.textContent||'').toLowerCase();
-      card.style.opacity=text.indexOf(ql)>=0?'':'0.15';
-    });
-  }else{
-    document.querySelectorAll('.form-card').forEach(function(card){card.style.opacity=''});
-  }
 }
 
 // ==============================================================
@@ -3355,49 +3534,6 @@ function ptFilter(){
 // ==============================================================
 // TAB: FORMS
 // ==============================================================
-var fmSelected=0;        // index of the form shown in the main panel
-var fmSearch='';         // sidebar search query
-function _fmText(form){
-  // searchable blob: form name + section names + field/instruction names
-  var parts=[form.name];
-  (form.sections||[]).forEach(function(s){parts.push(s.name);(s.items||[]).forEach(function(it){
-    if(it.name)parts.push(it.name);
-    if(it.columns)it.columns.forEach(function(c){parts.push(c.name)});
-  })});
-  return parts.join(' ').toLowerCase();
-}
-function renderForms(){
-  var el=document.getElementById('tp-forms');
-  if(!el)return;
-  if(typeof formsData==='undefined'||!formsData.length){
-    el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-dim)">No forms found in this blueprint.</div>';
-    return;
-  }
-  if(fmSelected>=formsData.length)fmSelected=0;
-  var totalFields=0,totalRules=0;
-  formsData.forEach(function(f){totalFields+=f.fieldCount;totalRules+=f.smartRuleCount});
-  var h='<div class="fm-layout">';
-  // ---- LEFT: form navigator (search + list) ----
-  h+='<div class="fm-sidebar">';
-  h+='<div class="fm-sb-head"><div class="fm-sb-title">Forms <span class="fm-sb-count">'+formsData.length+'</span></div>';
-  h+='<div class="fm-sb-stats">'+totalFields+' field'+(totalFields!==1?'s':'')+(totalRules?' &middot; '+totalRules+' rule'+(totalRules!==1?'s':''):'')+'</div></div>';
-  if(formsData.length>4)h+='<input class="fm-sb-search" id="fm-search" placeholder="Search forms…" oninput="fmFilter(this.value)" value="'+escHtml(fmSearch)+'">';
-  h+='<div class="fm-sb-list" id="fm-list">';
-  formsData.forEach(function(form,fi){
-    var sel=fi===fmSelected?' active':'';
-    h+='<div class="fm-sb-item'+sel+'" data-fi="'+fi+'" data-search="'+escHtml(_fmText(form))+'" onclick="fmSelect('+fi+')">';
-    h+='<div class="fm-sb-item-name">'+escHtml(form.name)+'</div>';
-    h+='<div class="fm-sb-item-meta">'+form.sectionCount+' section'+(form.sectionCount!==1?'s':'')+' &middot; '+form.fieldCount+' field'+(form.fieldCount!==1?'s':'');
-    if(form.smartRuleCount)h+=' &middot; <span class="fm-sb-rules">'+form.smartRuleCount+' rule'+(form.smartRuleCount!==1?'s':'')+'</span>';
-    h+='</div></div>';
-  });
-  h+='</div></div>';
-  // ---- RIGHT: selected form ----
-  h+='<div class="fm-main" id="fm-main">'+renderFormPanel(formsData[fmSelected])+'</div>';
-  h+='</div>';
-  el.innerHTML=h;
-  if(fmSearch)fmFilter(fmSearch);
-}
 // Render the large form preview for one form (right panel) framed as an actual
 // form "sheet" — a white bordered document on a gray backdrop, like the real
 // Regrello form preview/configure view.
@@ -3419,29 +3555,6 @@ function renderFormPanel(form){
   h+='<div class="fm-form-body">'+renderFormSections(form)+'</div>';
   h+='</div>';
   return h;
-}
-function fmSelect(fi){
-  if(fi===fmSelected)return;
-  fmSelected=fi;
-  document.querySelectorAll('#fm-list .fm-sb-item').forEach(function(it){it.classList.toggle('active',+it.dataset.fi===fi)});
-  var main=document.getElementById('fm-main');
-  if(main){main.innerHTML=renderFormPanel(formsData[fi]);main.scrollTop=0}
-}
-function fmFilter(q){
-  fmSearch=q;q=(q||'').trim().toLowerCase();
-  document.querySelectorAll('#fm-list .fm-sb-item').forEach(function(it){
-    var match=!q||it.dataset.search.indexOf(q)!==-1;
-    it.style.display=match?'':'none';
-  });
-}
-function toggleFormCard(fi){
-  var body=document.getElementById('fcb-'+fi);
-  var icon=document.getElementById('fei-'+fi);
-  if(!body)return;
-  var open=body.classList.toggle('open');
-  if(icon)icon.classList.toggle('open',open);
-  var hdr=body.previousElementSibling;
-  if(hdr)hdr.classList.toggle('open',open);
 }
 // Format a humanized smart-rule string ("Show when \"Field\" equals \"Value\"")
 // the way Regrello's ConstraintRuleBlock reads: bold the rule verb, wrap quoted
@@ -5921,7 +6034,6 @@ function _pdfDoExport(view){
   var el;
   el=document.getElementById('tc-fields');if(el){var fids={};var fsList=fullProcess?stages.concat(childStages):stages;fsList.forEach(function(s){s.tasks.forEach(function(t){t.outputs.forEach(function(o){if(o.id)fids[o.id+'_'+o.n]=1});t.inputs.forEach(function(i){if(i.id)fids[i.id+'_'+i.n]=1})})});el.textContent=Object.keys(fids).length}
   el=document.getElementById('tc-agents');if(el)el.textContent=nAgentTasks;
-  el=document.getElementById('tc-forms');if(el&&typeof formsData!=='undefined')el.textContent=formsData.length||'';
 })();
 if(childBlueprints.length){var fpw=document.getElementById('fp-toggle-wrap');if(fpw)fpw.style.display=''}
 switchTab('map');
