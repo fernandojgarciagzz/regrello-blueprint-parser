@@ -130,18 +130,53 @@ const AGENT_TYPE_NAMES = {
   'DOCUMENT_EXTRACTION':'Document Extraction Agent','UNKNOWN':'Unknown Agent'
 };
 
+// --- Canonical field-type resolution -------------------------------------
+// Regrello stores the storage primitive in field.propertyType.name, but the
+// real user-facing type lives on spectrumFieldVersion.validationType. Several
+// product types collapse onto one primitive (Select/Multi-select/Email/Phone
+// => Text, Currency => Decimal), so reading only propertyType mislabels them.
+// Mirrors resolve_field_type() in rex_parser.py — keep the two in sync.
+const VALIDATION_TYPE_LABELS = {
+  'boolean':'Checkbox','currency':'Currency','timestamp':'Date','document':'Document',
+  'email':'Email','multi-select':'Multi-select','party':'People','phone':'Phone',
+  'select':'Select','signature':'Signature'
+  // 'raw' omitted => fall back to the storage primitive.
+};
+const PROPERTY_TYPE_FALLBACK = {
+  'Checkbox':'Checkbox','Date':'Date','Document':'Document','Party':'People',
+  'Number':'Number','Decimal':'Number','Text':'Text','Sync Object':'Sync Object'
+};
+function resolveFieldType(propertyType, validationType, isMultiValued, allowedValues, fieldUnit) {
+  const vt = (validationType || '').trim().toLowerCase();
+  if (vt && VALIDATION_TYPE_LABELS[vt]) return VALIDATION_TYPE_LABELS[vt];
+  const hasChoices = !!(allowedValues && allowedValues.length);
+  const unitType = (fieldUnit && typeof fieldUnit === 'object') ? String(fieldUnit.type || '').toUpperCase() : null;
+  const pt = propertyType || 'Unknown';
+  if (pt === 'Decimal' && unitType === 'CURRENCY') return 'Currency';
+  if (pt === 'Text' && hasChoices) return isMultiValued ? 'Multi-select' : 'Select';
+  return PROPERTY_TYPE_FALLBACK[pt] || pt;
+}
+// Pull the validationType string off a spectrumFieldVersion object.
+function sfvValidationType(sfv) {
+  const v = (sfv || {}).validationType;
+  return (v && typeof v === 'object') ? v.validationType : (v || null);
+}
+
 function parseFieldInstance(fi) {
   const field = fi.field || {};
   const pt = field.propertyType || {};
   const sfv = fi.spectrumFieldVersion || {};
+  const allowed = field.allowedValues || sfv.allowedValues || [];
+  const fieldUnit = field.fieldUnit || sfv.fieldUnit || null;
+  const isMulti = !!(field.isMultiValued || fi.isMultiValued);
   return {
     id: field.id || 0,
     name: field.name || 'Unknown',
-    property_type: pt.name || 'Unknown',
-    is_multi_valued: field.isMultiValued || false,
+    property_type: resolveFieldType(pt.name || 'Unknown', sfvValidationType(sfv), isMulti, allowed, fieldUnit),
+    is_multi_valued: isMulti,
     input_type: fi.inputType || 'UNKNOWN',
     helper_text: sfv.helperText || '',
-    allowed_values: field.allowedValues || []
+    allowed_values: allowed
   };
 }
 
@@ -168,19 +203,45 @@ function agentClass(task, agent) {
   return AGENT_CLASS_MAP[agent.type] || 'regrello';
 }
 
+// The people/role field driving a task's dynamic assignee, e.g. "Buyer",
+// "Quality Manager", or the built-in "Workflow owner". Regrello stores the
+// controlling field under the CONTROLLER wrapper's values[].sourceField…V2.field,
+// NOT on the wrapper's own `field` (which is always the generic
+// "RegrelloTaskAssignees"). Returns {name, fieldType} or null; fieldType
+// 'SYSTEM' = a built-in party field (Workflow owner/creator), anything else is a
+// real people/role field.
+function dynamicAssigneeField(task) {
+  const fic = task.fieldInstancesControllingAssignees;
+  if (!fic || !fic.length) return null;
+  for (const ctrl of fic) {
+    for (const v of (ctrl.values || [])) {
+      const s = v.sourceFieldInstanceMultiValuePartyV2 || v.sourceFieldInstanceValuePartyV2 || v.sourceFieldInstanceMultiValueParty;
+      if (s && s.field && s.field.name) return { name: String(s.field.name).trim(), fieldType: s.field.fieldType || '' };
+    }
+  }
+  return null;
+}
+
+// True when a human task's assignee is resolved at runtime from a people/role
+// (or system party) field, with no fixed user/team. These all share ONE
+// "Human (Dynamic)" swim-lane even though each card shows its own role name.
+function isDynamicHuman(task, agent) {
+  if (agent || task.createsWorkflowFromWorkflowTemplateId) return false;
+  for (const a of (task.assignees || [])) {
+    if (a.team) return false;
+    if (a.user && a.user.userType !== 'AI_AGENT_ACCOUNT') return false;
+  }
+  return !!(task.fieldInstancesControllingAssignees && task.fieldInstancesControllingAssignees.length);
+}
+
 function humanSubtype(task, agent) {
   if (agent || task.createsWorkflowFromWorkflowTemplateId) return '';
-  const SYSTEM_FIELDS = new Set(['Workflow owner', 'Workflow creator']);
   for (const a of (task.assignees || [])) {
     if (a.team) return 'team';
     if (a.user && a.user.userType !== 'AI_AGENT_ACCOUNT') return 'email';
   }
-  if (task.fieldInstancesControllingAssignees && task.fieldInstancesControllingAssignees.length) {
-    const ctrl = task.fieldInstancesControllingAssignees[0];
-    const fn = (ctrl.fieldInstance && ctrl.fieldInstance.field && ctrl.fieldInstance.field.name) || '';
-    if (SYSTEM_FIELDS.has(fn)) return 'system';
-    return 'role';
-  }
+  const dyn = dynamicAssigneeField(task);
+  if (dyn) return dyn.fieldType === 'SYSTEM' ? 'system' : 'role';
   return 'system';
 }
 
@@ -192,6 +253,10 @@ function agentLabel(task, agent) {
     if (a.user && a.user.userType !== 'AI_AGENT_ACCOUNT') return 'Human (' + (a.user.name || 'User') + ')';
     if (a.team) return 'Human (' + a.team.name + ')';
   }
+  // Dynamically assigned → show the actual people/role (or system) field name
+  // directly (e.g. "Buyer"), instead of the opaque "Human (Dynamic)".
+  const dyn = dynamicAssigneeField(task);
+  if (dyn && dyn.name) return dyn.name;
   if (task.fieldInstancesControllingAssignees && task.fieldInstancesControllingAssignees.length) return 'Human (Dynamic)';
   return 'Human (Workflow owner)';
 }
@@ -279,6 +344,7 @@ function parseBlueprintData(bpData) {
         agentClass: agentClass(taskData, agent),
         agentLabel: agentLabel(taskData, agent),
         ht: humanSubtype(taskData, agent),
+        is_dynamic_human: isDynamicHuman(taskData, agent),
         shared_fields: shared,
         requested_fields: requested,
         linked_workflow_id: taskData.createsWorkflowFromWorkflowTemplateId || null,
@@ -518,6 +584,7 @@ function generateDataStructures(blueprints) {
         id: taskId, name: task.name,
         agent: task.agentLabel, agentClass: task.agentClass,
         ...(htVal ? {ht: htVal} : {}),
+        ...(task.is_dynamic_human ? {dyn: 1} : {}),
         _isChildLink: isChildLink,
         ...(childIdx >= 0 ? {_childIdx: childIdx} : {}),
         ...(descText ? {desc: descText} : {}),
@@ -575,6 +642,7 @@ function generateDataStructures(blueprints) {
         tasksArr.push({
           id: taskId, name: task.name, agent: task.agentLabel, agentClass: task.agentClass,
           ...(chtVal ? {ht: chtVal} : {}),
+          ...(task.is_dynamic_human ? {dyn: 1} : {}),
           _isChildLink: cIsChildLink,
           ...(cChildIdx >= 0 ? {_childIdx: cChildIdx} : {}),
           ...(cDescText ? {desc: cDescText} : {}),
@@ -734,14 +802,19 @@ function extractFormsData(workflowTemplates) {
           const field = fi.field || {};
           if (!field.id) continue;
           const pt = field.propertyType || {};
-          const newType = pt.name || 'Unknown';
+          const sfv = fi.spectrumFieldVersion || {};
+          const allowed = field.allowedValues || sfv.allowedValues || [];
+          const fieldUnit = field.fieldUnit || sfv.fieldUnit || null;
+          const isMulti = !!(field.isMultiValued || fi.isMultiValued);
+          // Resolve the real user-facing type (validationType-first, primitive fallback).
+          const newType = resolveFieldType(pt.name || 'Unknown', sfvValidationType(sfv), isMulti, allowed, fieldUnit);
           const existing = fieldMap[field.id];
           if (!existing || (existing.type === 'Unknown' && newType !== 'Unknown')) {
             fieldMap[field.id] = {
               name: field.name || 'Unknown',
               type: newType,
-              isMultiValued: field.isMultiValued || false,
-              allowedValues: (field.allowedValues || []).map(v => typeof v === 'object' ? (v.displayStringValue || v.stringValue || JSON.stringify(v)) : String(v))
+              isMultiValued: isMulti,
+              allowedValues: allowed.map(v => typeof v === 'object' ? (v.displayStringValue || v.stringValue || JSON.stringify(v)) : String(v))
             };
           }
         }
@@ -1299,7 +1372,7 @@ function generateHtmlOutput(blueprints, data, template) {
     'var agentShort={ai:"AI",doc:"Doc",excel:"Excel",human:"Human",regrello:"Regrello",tabular:"Tabular",flash:"Flash"};\n' +
     'const clsMap={ai:"a-ai",doc:"a-doc",excel:"a-excel",human:"a-human",regrello:"a-regrello",tabular:"a-tabular",flash:"a-flash"};\n' +
     'function badgeCls(t){var c=clsMap[t.agentClass]||"";if(t.ht)c+=" ht-"+t.ht;return c}\n' +
-    'const ftClsMap={Document:"ft-doc",Text:"ft-text",Decimal:"ft-dec",Date:"ft-date",Checkbox:"ft-chk","Sync Object":"ft-sync",Various:"ft-sync"};\n' +
+    'const ftClsMap={Document:"ft-doc",Text:"ft-text",Number:"ft-num",Decimal:"ft-dec",Currency:"ft-cur",Date:"ft-date",Checkbox:"ft-chk",Email:"ft-email",Phone:"ft-phone",People:"ft-people",Select:"ft-sel","Multi-select":"ft-msel",Signature:"ft-sig","Sync Object":"ft-sync",Various:"ft-sync"};\n' +
     "function ftIcon(type){var c=ftClsMap[type];if(!c)return'';return'<span class=\"ft-icon '+c+'\" title=\"'+type+'\"></span>'}\n\n" +
     'function computeDerived(){\n' +
     '  stages.forEach(s=>s.tasks.forEach(t=>{taskToStage[t.id]=s.id;taskMap[t.id]=t}));\n' +

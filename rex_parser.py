@@ -43,6 +43,81 @@ import argparse
 import base64
 
 
+# --- Canonical field-type resolution -------------------------------------
+#
+# Regrello stores a field's *storage primitive* in field.propertyType.name
+# (Text / Decimal / Number / Document / Party / Date / Checkbox / Sync Object)
+# but the *user-facing field type* is carried on the spectrumFieldVersion's
+# validationType.validationType. Several distinct product types collapse onto
+# a single primitive — e.g. Select, Multi-select, Email and Phone all report
+# propertyType "Text", and Currency reports "Decimal". Reading only
+# propertyType therefore mislabels Select fields as "Text", Currency as
+# "Decimal", People as "Party", etc.
+#
+# This map turns the validationType into the label the product shows. The
+# 12 canonical types the product exposes are:
+#   Checkbox, Currency, Date, Document, Email, Multi-select, Number,
+#   People, Phone, Select, Signature, Text
+# (plus the internal "Sync Object" primitive, which has no validationType of
+# its own and is surfaced as-is.)
+VALIDATION_TYPE_LABELS = {
+    'boolean': 'Checkbox',
+    'currency': 'Currency',
+    'timestamp': 'Date',
+    'document': 'Document',
+    'email': 'Email',
+    'multi-select': 'Multi-select',
+    'party': 'People',
+    'phone': 'Phone',
+    'select': 'Select',
+    'signature': 'Signature',
+    # 'raw' is intentionally absent — it means "no special validation", so the
+    # true type is the storage primitive (Text / Number / Decimal / Sync Object).
+}
+
+# Fallback for older exports that lack validationType: infer from the storage
+# primitive and field shape (multi-valued + allowed values => Multi-select,
+# allowed values => Select, currency unit => Currency).
+PROPERTY_TYPE_FALLBACK = {
+    'Checkbox': 'Checkbox',
+    'Date': 'Date',
+    'Document': 'Document',
+    'Party': 'People',
+    'Number': 'Number',
+    'Decimal': 'Number',
+    'Text': 'Text',
+    'Sync Object': 'Sync Object',
+}
+
+
+def resolve_field_type(property_type=None, validation_type=None,
+                       is_multi_valued=False, allowed_values=None,
+                       field_unit=None):
+    """Resolve a field's canonical, user-facing type label.
+
+    Prefers validationType (the product's real discriminator); falls back to
+    the storage primitive + field shape for exports that predate it.
+    """
+    vt = (validation_type or '').strip().lower()
+    if vt and vt in VALIDATION_TYPE_LABELS:
+        return VALIDATION_TYPE_LABELS[vt]
+
+    has_choices = bool(allowed_values)
+    unit_type = None
+    if isinstance(field_unit, dict):
+        unit_type = (field_unit.get('type') or '').upper()
+
+    pt = property_type or 'Unknown'
+
+    # Fallback inference when validationType is 'raw' or missing.
+    if pt == 'Decimal' and unit_type == 'CURRENCY':
+        return 'Currency'
+    if pt == 'Text' and has_choices:
+        return 'Multi-select' if is_multi_valued else 'Select'
+
+    return PROPERTY_TYPE_FALLBACK.get(pt, pt)
+
+
 @dataclass
 class FieldConstraint:
     """Field validation constraint."""
@@ -359,19 +434,32 @@ class RexParserV4:
 
         validation = self.parse_field_validation(spectrum_field) if spectrum_field else None
 
+        raw_property_type = spectrum_field.get('propertyType', {}).get('name', 'Unknown') if spectrum_field else 'Unknown'
+        field_unit = spectrum_field.get('fieldUnit') if spectrum_field else None
+        allowed_values = spectrum_field.get('allowedValues', []) if spectrum_field else []
+        # isMultiValued lives on the underlying field def, not the SFV wrapper.
+        is_multi = bool(field_info.get('isMultiValued')) if field_info else False
+        resolved_type = resolve_field_type(
+            property_type=raw_property_type,
+            validation_type=(validation.validation_type if validation else None),
+            is_multi_valued=is_multi,
+            allowed_values=allowed_values,
+            field_unit=field_unit,
+        )
+
         return FormFieldInfo(
             field_id=form_field.get('id', 0),
             field_name=form_field.get('name', 'Unknown'),
             field_type=form_field.get('fieldType', 'UNKNOWN'),
-            property_type=spectrum_field.get('propertyType', {}).get('name', 'Unknown') if spectrum_field else 'Unknown',
+            property_type=resolved_type,
             required=form_field.get('isRequired', False),
             helper_text=spectrum_field.get('helperText', '') if spectrum_field else '',
             description=spectrum_field.get('description', '') if spectrum_field else '',
             display_order=form_field.get('displayOrder', 0),
             validation=validation,
-            allowed_values=spectrum_field.get('allowedValues', []) if spectrum_field else [],
+            allowed_values=allowed_values,
             default_value=None,
-            field_unit=spectrum_field.get('fieldUnit') if spectrum_field else None,
+            field_unit=field_unit,
             spectrum_field_id=form_field.get('spectrumFieldId')
         )
 
@@ -663,18 +751,38 @@ class RexParserV4:
         sfv = field_instance.get('spectrumFieldVersion', {}) or {}
         helper_text = sfv.get('helperText', '') or ''
 
+        # The user-facing field type lives on the SFV's validationType; the
+        # field.propertyType is only the storage primitive (see resolve_field_type).
+        validation_type = None
+        vt_obj = sfv.get('validationType')
+        if isinstance(vt_obj, dict):
+            validation_type = vt_obj.get('validationType')
+        raw_property_type = property_type.get('name', 'Unknown')
+        # allowedValues / fieldUnit / isMultiValued may sit on either the field
+        # def or the SFV — prefer whichever is populated.
+        allowed_values = field.get('allowedValues') or sfv.get('allowedValues') or []
+        field_unit = field.get('fieldUnit') or sfv.get('fieldUnit')
+        is_multi_valued = bool(field.get('isMultiValued') or field_instance.get('isMultiValued'))
+        resolved_type = resolve_field_type(
+            property_type=raw_property_type,
+            validation_type=validation_type,
+            is_multi_valued=is_multi_valued,
+            allowed_values=allowed_values,
+            field_unit=field_unit,
+        )
+
         field_id = field.get('id')
         field_info = {
             'id': field_id,
             'name': field.get('name', 'Unknown'),
-            'property_type': property_type.get('name', 'Unknown'),
-            'is_multi_valued': field.get('isMultiValued', False),
+            'property_type': resolved_type,
+            'is_multi_valued': is_multi_valued,
             'input_type': field_instance.get('inputType', 'UNKNOWN'),
             'field_type': field.get('fieldType', 'DEFAULT'),
             'description': field.get('description', ''),
             'helper_text': helper_text,
-            'allowed_values': field.get('allowedValues', []),
-            'field_unit': field.get('fieldUnit'),
+            'allowed_values': allowed_values,
+            'field_unit': field_unit,
             'field_restriction': field.get('fieldRestriction')
         }
 
@@ -1788,10 +1896,25 @@ class RexParserV4:
             return task.assignees[0]
         if task.dynamic_assignment:
             src = task.dynamic_assignment.source_field or task.dynamic_assignment.controlling_field
-            if src in self.SYSTEM_FIELDS:
-                return f"Human (System: {src})"
-            return f"Human (Role: {src})"
-        return 'Human (System: Workflow owner)'
+            # Dynamically assigned → show the actual controlling field name directly
+            # (e.g. "Buyer", or the built-in "Workflow owner") rather than the opaque
+            # "Human (Dynamic)". These still share the single "Human (Dynamic)"
+            # swim-lane via the `dyn` marker (see _is_dynamic_human). The system-vs-
+            # role icon distinction is preserved separately in _html_human_subtype.
+            return src or 'Human (Dynamic)'
+        return 'Human (Workflow owner)'
+
+    def _is_dynamic_human(self, task: TaskInfo) -> bool:
+        """True when a human task's assignee is resolved at runtime from a
+        controlling (people/role or system party) field, with no fixed user/team.
+        Such tasks all share one 'Human (Dynamic)' lane even though each card shows
+        its own field name."""
+        if task.agent or task.linked_workflow_id:
+            return False
+        for a in (task.assignees or []):
+            if 'User:' in a or 'Team:' in a:
+                return False
+        return task.dynamic_assignment is not None
 
     def _html_human_subtype(self, task: TaskInfo) -> str:
         """Get human assignee subtype for icon differentiation."""
@@ -1959,6 +2082,7 @@ class RexParserV4:
                     child_idx = child_ids.index(task.linked_workflow_id)
 
                 ht_str = f',ht:"{human_subtype}"' if human_subtype else ''
+                dyn_str = ',dyn:1' if self._is_dynamic_human(task) else ''
                 cidx_str = f',_childIdx:{child_idx}' if child_idx >= 0 else ''
 
                 # Description (strip HTML tags for plain text, truncate for JS)
@@ -2000,7 +2124,7 @@ class RexParserV4:
 
                 task_str = (
                     f'    {{id:"{task_id}",name:"{self._js_str(task.name)}",'
-                    f'agent:"{self._js_str(agent_label)}",agentClass:"{agent_class}"{ht_str},'
+                    f'agent:"{self._js_str(agent_label)}",agentClass:"{agent_class}"{ht_str}{dyn_str},'
                     f'_isChildLink:{is_child_link}{cidx_str}{desc_js}{ttype_js}{itype_js}{docs_js}{due_js}{deps_js}{dep_ids_js},'
                     f'\n     inputs:[{",".join(inputs)}],'
                     f'\n     outputs:[{",".join(outputs)}]}}'
@@ -2395,7 +2519,7 @@ class RexParserV4:
             f"var agentShort={{ai:'AI',doc:'Doc',excel:'Excel',human:'Human',regrello:'Regrello',tabular:'Tabular',flash:'Flash'}};\n"
             f"const clsMap={{ai:'a-ai',doc:'a-doc',excel:'a-excel',human:'a-human',regrello:'a-regrello',tabular:'a-tabular',flash:'a-flash'}};\n"
             f"function badgeCls(t){{var c=clsMap[t.agentClass]||'';if(t.ht)c+=' ht-'+t.ht;return c}}\n"
-            f"const ftClsMap={{Document:'ft-doc',Text:'ft-text',Decimal:'ft-dec',Date:'ft-date',Checkbox:'ft-chk','Sync Object':'ft-sync',Various:'ft-sync'}};\n"
+            f"const ftClsMap={{Document:'ft-doc',Text:'ft-text',Number:'ft-num',Decimal:'ft-dec',Currency:'ft-cur',Date:'ft-date',Checkbox:'ft-chk',Email:'ft-email',Phone:'ft-phone',People:'ft-people',Select:'ft-sel','Multi-select':'ft-msel',Signature:'ft-sig','Sync Object':'ft-sync',Various:'ft-sync'}};\n"
             f"function ftIcon(type){{var c=ftClsMap[type];if(!c)return'';return'<span class=\"ft-icon '+c+'\" title=\"'+type+'\"></span>'}}\n\n"
             f"function computeDerived(){{\n"
             f"  stages.forEach(s=>s.tasks.forEach(t=>{{taskToStage[t.id]=s.id;taskMap[t.id]=t}}));\n"
