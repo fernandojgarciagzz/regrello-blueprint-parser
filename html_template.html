@@ -3257,25 +3257,29 @@ function ptFieldMentions(s){if(!s)return[];var m=s.match(/\[([^\]]+)\]/g);return
 function ptBuildRows(){
   var rows=[];
   stages.forEach(function(s){s.tasks.forEach(function(t){
-    if(t.agentClass==='human')return;
     var tid=t.id,p=taskPrompts[tid]||'',dc=docReaderConfig[tid];
+    // The Prompts tab is a prompt catalog: surface human tasks that carry real
+    // content (notification-email bodies, role instructions) and skip only the
+    // truly empty manual tasks that have nothing to show.
+    if(t.agentClass==='human'&&!p&&!dc)return;
     var plainText=dc?((dc.fields||[]).map(function(f){return f.n+': '+(f.helper||'')}).join('; ')):ptStripHtml(p);
     var fc=t.inputs.length+t.outputs.length;
     rows.push({t:t,stage:s,bp:'parent',tid:tid,ac:t.agentClass||'ai',
       wc:ptWordCount(p||(dc?plainText:'')),fc:fc,
       hasContent:(p.length>0)||!!dc,plainText:plainText})
   })});
-  if(fullProcess){
-    childStages.forEach(function(s){s.tasks.forEach(function(t){
-      if(t.agentClass==='human')return;
-      var tid=t.id,p=taskPrompts[tid]||'',dc=docReaderConfig[tid];
-      var plainText=dc?((dc.fields||[]).map(function(f){return f.n+': '+(f.helper||'')}).join('; ')):ptStripHtml(p);
-      var fc=t.inputs.length+t.outputs.length;
-      rows.push({t:t,stage:s,bp:'child',tid:tid,ac:t.agentClass||'ai',
-        wc:ptWordCount(p||(dc?plainText:'')),fc:fc,
-        hasContent:(p.length>0)||!!dc,plainText:plainText})
-    })});
-  }
+  // Child-blueprint prompts always appear here regardless of the Full Process
+  // toggle — that toggle only scopes the process-visualization tabs, whereas the
+  // Prompts tab is a flat extraction catalog that should list every prompt.
+  childStages.forEach(function(s){s.tasks.forEach(function(t){
+    var tid=t.id,p=taskPrompts[tid]||'',dc=docReaderConfig[tid];
+    if(t.agentClass==='human'&&!p&&!dc)return;
+    var plainText=dc?((dc.fields||[]).map(function(f){return f.n+': '+(f.helper||'')}).join('; ')):ptStripHtml(p);
+    var fc=t.inputs.length+t.outputs.length;
+    rows.push({t:t,stage:s,bp:'child',tid:tid,ac:t.agentClass||'ai',
+      wc:ptWordCount(p||(dc?plainText:'')),fc:fc,
+      hasContent:(p.length>0)||!!dc,plainText:plainText})
+  })});
   return rows;
 }
 
@@ -3364,7 +3368,7 @@ function renderPrompts(){
   h+='<div class="ms-wrap"><button class="ms-btn" id="ms-btn-agent" onclick="msToggle(\'ms-panel-agent\')">Agents</button>';
   h+='<div class="ms-panel" id="ms-panel-agent">';
   h+='<div class="ms-actions"><button onclick="msSelectAll(\'ms-panel-agent\',\'agent\')">Select All</button><button onclick="msClearAll(\'ms-panel-agent\',\'agent\')">Clear</button></div>';
-  ['ai','doc','excel','regrello','tabular','flash'].forEach(function(ac){
+  ['ai','doc','excel','regrello','tabular','flash','human'].forEach(function(ac){
     if(agentTypes[ac])h+='<div class="ms-item"><input type="checkbox" id="ms-a-'+ac+'" onchange="msToggleItem(\''+ac+'\',\'agent\')"><label for="ms-a-'+ac+'"><span class="abadge '+(clsMap[ac]||'')+'">'+escHtml(agentTypes[ac])+'</span></label></div>';
   });
   h+='</div></div>';
