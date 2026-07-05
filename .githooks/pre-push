@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#
+# pre-push hook — block pushes when mirrored files have drifted.
+#
+# The deployed GitHub Pages site is served from the repo ROOT, mirrored from
+# web-app/. If those copies drift, the live site serves stale code. This hook
+# runs scripts/check_sync.sh before every push and aborts on drift.
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Bypass in an emergency:  git push --no-verify   (not recommended)
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+CHECK="$REPO_ROOT/scripts/check_sync.sh"
+
+if [ ! -f "$CHECK" ]; then
+  echo "pre-push: scripts/check_sync.sh not found — skipping sync check." >&2
+  exit 0
+fi
+
+if ! bash "$CHECK"; then
+  echo >&2
+  echo "pre-push: aborting push — fix the drift above (or use --no-verify to override)." >&2
+  exit 1
+fi
+exit 0

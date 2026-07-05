@@ -173,9 +173,29 @@ Regrello Parser Tools/
 ## Notes
 
 - `rex_parser.py` and `html_template.html` must be in the **same directory** — the parser loads the template at runtime
-- `web-app/template.html` is always kept in sync with `html_template.html` via `cp`
 - `.rex` files are ZIP archives containing `blueprint_export.json` — exported from the Regrello platform
 - Generated HTML files are fully self-contained (embedded CSS/JS, CDN-loaded D3.js) — no server needed
 - The parser uses only Python 3 standard library — zero external dependencies
 - HTML template follows a CSS-only modification rule — visual changes go in CSS, not HTML/JS structure
 - Dashboard styling matches the Regrello product using Figma Design System tokens (`docs/figma-tokens.json`)
+
+## Mirrored files & the sync check
+
+Several files are intentionally duplicated, and **GitHub Pages serves the app from the repo root** (mirrored from `web-app/`). If a copy drifts, the live site serves stale code. Two invariants must hold:
+
+1. **Template triplet** — `template.html` (source of truth), `html_template.html` (embedded by `rex_parser.py`), and `web-app/template.html` are byte-identical.
+2. **Pages-root mirror** — the root `index.html`, `agentforce-ops-logo.svg`, and `cloud-logo.png` match their maintained source under `web-app/`.
+
+`scripts/check_sync.sh` enforces both. Run it any time:
+
+```bash
+bash scripts/check_sync.sh
+```
+
+A `pre-push` hook runs it automatically and blocks pushes on drift. **Enable it once per clone:**
+
+```bash
+git config core.hooksPath .githooks
+```
+
+(Bypass in an emergency with `git push --no-verify`.) After editing `template.html` or any `web-app/` asset, copy the change to its mirror(s) before pushing — the check prints the exact `cp` command for any drift it finds.
